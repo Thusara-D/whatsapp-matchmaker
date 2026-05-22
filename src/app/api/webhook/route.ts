@@ -105,8 +105,8 @@ export async function POST(request: Request) {
         }
     }
     return new NextResponse('EVENT_RECEIVED', { status: 200 });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error handling webhook POST:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return new NextResponse(error.message || 'Internal Server Error', { status: 500 });
   }
 }

@@ -1,46 +1,12 @@
-import { GoogleGenerativeAI, Schema, Type } from "@google/generative-ai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
-const profileSchema: Schema = {
-  type: Type.OBJECT,
-  properties: {
-    isComplete: { type: Type.BOOLEAN, description: "True if ALL mandatory fields have been collected from the user." },
-    missingFields: { type: Type.ARRAY, items: { type: Type.STRING }, description: "List of fields that are still missing (e.g., 'Age', 'Photos')." },
-    friendlyReply: { type: Type.STRING, description: "Your conversational response in friendly spoken Singlish, asking for the missing fields or acknowledging completion." },
-    profileData: {
-      type: Type.OBJECT,
-      properties: {
-        name: { type: Type.STRING },
-        gender: { type: Type.STRING, description: "boy or girl" },
-        lookingForGender: { type: Type.STRING, description: "boy or girl" },
-        village: { type: Type.STRING },
-        district: { type: Type.STRING },
-        age: { type: Type.NUMBER },
-        birthYear: { type: Type.NUMBER },
-        birthMonth: { type: Type.NUMBER },
-        birthDay: { type: Type.NUMBER },
-        height: { type: Type.STRING },
-        weight: { type: Type.STRING },
-        skinColor: { type: Type.STRING },
-        education: { type: Type.STRING },
-        job: { type: Type.STRING },
-        maritalStatus: { type: Type.STRING },
-        partnerAgeGap: { type: Type.STRING },
-        partnerPreferences: { type: Type.STRING },
-        hasUploadedTwoPhotos: { type: Type.BOOLEAN }
-      }
-    }
-  },
-  required: ["isComplete", "missingFields", "friendlyReply"]
-};
-
 export async function processMessageWithGemini(userMessage: string, chatHistory: string, currentProfileState: any) {
   const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-pro",
+    model: "gemini-2.5-flash",
     generationConfig: {
       responseMimeType: "application/json",
-      responseSchema: profileSchema,
     }
   });
 
@@ -72,6 +38,33 @@ export async function processMessageWithGemini(userMessage: string, chatHistory:
     Extract any new details from the user's latest message and update the profile state.
     If the profile is not complete, write a friendly Singlish reply asking for the missing information.
     If it is complete, thank them and tell them you are finding matches.
+
+    Return the result STRICTLY as a JSON object matching this structure:
+    {
+      "isComplete": boolean,
+      "missingFields": ["list", "of", "missing", "fields"],
+      "friendlyReply": "Your conversational Singlish response to the user",
+      "profileData": {
+         "name": "string",
+         "gender": "boy or girl",
+         "lookingForGender": "boy or girl",
+         "village": "string",
+         "district": "string",
+         "age": 25,
+         "birthYear": 2000,
+         "birthMonth": 1,
+         "birthDay": 1,
+         "height": "string",
+         "weight": "string",
+         "skinColor": "string",
+         "education": "string",
+         "job": "string",
+         "maritalStatus": "string",
+         "partnerAgeGap": "string",
+         "partnerPreferences": "string",
+         "hasUploadedTwoPhotos": false
+      }
+    }
   `;
 
   const prompt = `${systemInstruction}\n\nUser's latest message: ${userMessage}`;
