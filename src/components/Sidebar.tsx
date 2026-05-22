@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Users, Heart, CreditCard, Settings, Home } from "lucide-react";
+import { Users, Heart, CreditCard, Settings, Home, MessageSquare } from "lucide-react";
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -12,6 +12,7 @@ export default function Sidebar() {
     { name: "Users", href: "/dashboard/users", icon: Users },
     { name: "Matches", href: "/dashboard/matches", icon: Heart },
     { name: "Payments", href: "/dashboard/payments", icon: CreditCard },
+    { name: "Simulator", href: "/dashboard/simulator", icon: MessageSquare },
     { name: "Settings", href: "/dashboard/settings", icon: Settings },
   ];
 
