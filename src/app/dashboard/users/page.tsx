@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { User, Sparkles } from "lucide-react";
+import { User, Sparkles, HeartHandshake } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function UsersPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     async function fetchUsers() {
@@ -63,9 +65,9 @@ export default function UsersPage() {
                   <th className="px-8 py-5 font-bold">Phone Number</th>
                   <th className="px-8 py-5 font-bold">Name</th>
                   <th className="px-8 py-5 font-bold">Gender</th>
-                  <th className="px-8 py-5 font-bold">Age</th>
                   <th className="px-8 py-5 font-bold">District</th>
                   <th className="px-8 py-5 font-bold">Status</th>
+                  <th className="px-8 py-5 font-bold text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/40">
@@ -74,7 +76,6 @@ export default function UsersPage() {
                     <td className="px-8 py-5 font-bold text-gray-800">+{user.id}</td>
                     <td className="px-8 py-5 font-medium text-gray-600">{user.profileData?.name || "N/A"}</td>
                     <td className="px-8 py-5 font-medium text-gray-600 capitalize">{user.profileData?.gender || "N/A"}</td>
-                    <td className="px-8 py-5 font-medium text-gray-600">{user.profileData?.age || "N/A"}</td>
                     <td className="px-8 py-5 font-medium text-gray-600">{user.profileData?.district || "N/A"}</td>
                     <td className="px-8 py-5">
                       {user.profileData?.isComplete ? (
@@ -87,6 +88,17 @@ export default function UsersPage() {
                           <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></div>
                           Onboarding
                         </span>
+                      )}
+                    </td>
+                    <td className="px-8 py-5 text-right">
+                      {user.profileData?.isComplete && (
+                        <button
+                          onClick={() => router.push(`/dashboard/matches?userId=${user.id}`)}
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-rose-400 to-pink-500 hover:from-rose-500 hover:to-pink-600 text-white text-sm font-bold rounded-xl transition-all shadow-md shadow-rose-500/30 hover:scale-105 active:scale-95"
+                        >
+                          <HeartHandshake className="w-4 h-4" />
+                          Find Match
+                        </button>
                       )}
                     </td>
                   </tr>
