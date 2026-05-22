@@ -62,9 +62,10 @@ export async function POST(request: Request) {
             if (selectedMatch) {
               userData.state = "AWAITING_PAYMENT_RECEIPT";
               userData.selectedMatchId = selectedMatch.id;
+              const reply = `You have selected Match #${matchIndex + 1}. Please deposit Rs.XXXX to Bank Account No: 12345678 (BOC) and send a photo of the bank receipt here to unlock their contact details.`;
+              userData.chatHistory += `\nBot: ${reply}`;
               await setDoc(userRef, userData, { merge: true });
-              
-              await sendWhatsAppMessage(from, `You have selected Match #${matchIndex + 1}. Please deposit Rs.XXXX to Bank Account No: 12345678 (BOC) and send a photo of the bank receipt here to unlock their contact details.`);
+              await sendWhatsAppMessage(from, reply);
               return new NextResponse('EVENT_RECEIVED', { status: 200 });
             }
           }
@@ -76,27 +77,38 @@ export async function POST(request: Request) {
           
           if (geminiResult) {
             userData.profileData = { ...userData.profileData, ...geminiResult.profileData };
-            userData.chatHistory += `\nBot: ${geminiResult.friendlyReply}`;
             
             if (geminiResult.isComplete) {
               userData.state = "MATCHING";
-              await sendWhatsAppMessage(from, geminiResult.friendlyReply + " Please wait a moment while I find matches for you! (ඔබට ගැලපෙන අය හොයනකම් සුළු මොහොතක් රැඳී සිටින්න!)");
+              const waitReply = geminiResult.friendlyReply + " Please wait a moment while I find matches for you! (ඔබට ගැලපෙන අය හොයනකම් සුළු මොහොතක් රැඳී සිටින්න!)";
+              userData.chatHistory += `\nBot: ${waitReply}`;
+              await sendWhatsAppMessage(from, waitReply);
               
               const matches = await findMatches(userData.profileData);
               if (matches.length > 0) {
                 userData.state = "MATCHES_SENT";
                 userData.currentMatches = matches;
                 
-                await sendWhatsAppMessage(from, "Here are some matches we found for you! (ඔබට ගැලපෙන අය මෙන්න!)");
+                const foundReply = "Here are some matches we found for you! (ඔබට ගැලපෙන අය මෙන්න!)";
+                userData.chatHistory += `\nBot: ${foundReply}`;
+                await sendWhatsAppMessage(from, foundReply);
+                
                 for (let i = 0; i < matches.length; i++) {
-                  // In a real app, send the stored photo URL using sendWhatsAppImage
-                  await sendWhatsAppMessage(from, formatMatchMessage(matches[i], i));
+                  const matchMsg = formatMatchMessage(matches[i], i);
+                  userData.chatHistory += `\nBot: ${matchMsg}`;
+                  await sendWhatsAppMessage(from, matchMsg);
                 }
+                const selectReply = "Reply with SELECT 1, SELECT 2, or SELECT 3 to choose your partner!";
+                userData.chatHistory += `\nBot: ${selectReply}`;
+                await sendWhatsAppMessage(from, selectReply);
               } else {
                 userData.state = "WAITING_FOR_MATCHES";
-                await sendWhatsAppMessage(from, "We couldn't find exact matches right now. We will notify you when someone matches your profile! (මේ මොහොතේ ගැලපෙන අය නැත. අලුත් කෙනෙක් ආපු ගමන් අපි ඔබට දැනුම් දෙන්නම්!)");
+                const noMatchReply = "We couldn't find exact matches right now. We will notify you when someone matches your profile! (මේ මොහොතේ ගැලපෙන අය නැත. අලුත් කෙනෙක් ආපු ගමන් අපි ඔබට දැනුම් දෙන්නම්!)";
+                userData.chatHistory += `\nBot: ${noMatchReply}`;
+                await sendWhatsAppMessage(from, noMatchReply);
               }
             } else {
+              userData.chatHistory += `\nBot: ${geminiResult.friendlyReply}`;
               await sendWhatsAppMessage(from, geminiResult.friendlyReply);
             }
             

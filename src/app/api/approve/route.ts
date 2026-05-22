@@ -39,13 +39,13 @@ export async function POST(request: Request) {
 
     const matchData = matchSnap.data();
     
-    // Update user state to APPROVED
-    userData.state = 'MATCH_APPROVED';
-    await setDoc(userRef, userData, { merge: true });
-
     // Send the contact info via WhatsApp
     const contactMessage = `✅ Payment Approved!\n\nHere are the contact details for your match:\n\nName: ${matchData.profileData?.name || 'Not provided'}\nPhone Number: +${matchedUserId}\n\nWe wish you the best of luck! (ඔබට සුභ පතනවා!)`;
     
+    userData.state = 'MATCH_APPROVED';
+    userData.chatHistory += `\nBot: ${contactMessage}`;
+    await setDoc(userRef, userData, { merge: true });
+
     await sendWhatsAppMessage(userId, contactMessage);
 
     return NextResponse.json({ success: true });

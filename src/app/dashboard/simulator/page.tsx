@@ -139,6 +139,20 @@ export default function SimulatorPage() {
               >
                 <ImageIcon className="w-4 h-4" /> Simulate Image Upload (Receipt/Photo)
              </button>
+
+             <button 
+                onClick={async () => {
+                  if (!confirm("Simulate Admin Approving Payment?")) return;
+                  await fetch("/api/approve", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ userId: mockPhone })
+                  });
+                }}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-purple-50 hover:bg-purple-100 text-purple-600 font-bold rounded-xl transition-colors border border-purple-200"
+              >
+                ✅ Admin: Approve Pending Payment
+             </button>
           </div>
 
           <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 text-sm text-emerald-800 font-medium">
