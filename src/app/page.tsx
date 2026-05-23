@@ -5,6 +5,7 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import { Heart, Lock, Mail, ArrowRight } from "lucide-react";
+import ParticleBackground from "@/components/ParticleBackground";
 
 export default function Home() {
   const [email, setEmail] = useState("");
@@ -29,6 +30,8 @@ export default function Home() {
   return (
     <main className="min-h-screen flex items-center justify-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-rose-100 via-teal-50 to-rose-50 relative overflow-hidden">
       
+      <ParticleBackground />
+
       {/* Decorative Background Elements */}
       <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-rose-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
       <div className="absolute top-[20%] right-[-10%] w-96 h-96 bg-teal-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
