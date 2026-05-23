@@ -1,29 +1,11 @@
 import { NextResponse } from 'next/server';
-import { processMessageWithGemini } from '@/lib/gemini';
-import { sendWhatsAppMessage } from '@/lib/whatsapp';
-import { db } from '@/lib/firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { findMatches, formatMatchMessage } from '@/lib/matching';
-
-const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN;
-
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const mode = searchParams.get('hub.mode');
-  const token = searchParams.get('hub.verify_token');
-  const challenge = searchParams.get('hub.challenge');
-
-  if (mode === 'subscribe' && token === VERIFY_TOKEN) {
-    return new NextResponse(challenge, { status: 200 });
-  } else {
-    return new NextResponse('Forbidden', { status: 403 });
-  }
-}
+import { processIncomingMessage } from '@/lib/messageProcessor';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     
+    // Check if it's the expected simulated webhook payload
     if (body.object && body.entry && body.entry[0].changes && body.entry[0].changes[0].value.messages) {
         const value = body.entry[0].changes[0].value;
         const message = value.messages[0];
@@ -31,90 +13,19 @@ export async function POST(request: Request) {
         const msgBody = message.text?.body || "";
         const msgType = message.type;
 
-        // Handle image uploads
         let hasImage = false;
         if (msgType === 'image') {
           hasImage = true;
         }
 
-        const userRef = doc(db, 'users', from);
-        const userSnap = await getDoc(userRef);
-        let userData = userSnap.exists() ? userSnap.data() : { profileData: {}, chatHistory: "", state: "ONBOARDING", currentMatches: [] };
-        
-        userData.chatHistory += `\nUser: ${msgBody}`;
+        // The simulator doesn't strictly need a functional sendReply callback 
+        // since it reads the chat history directly from Firestore to display responses.
+        // However, we provide a mock callback just in case.
+        const mockSendReply = async (to: string, text: string) => {
+           console.log(`[Simulator Webhook] Simulated reply to ${to}: ${text}`);
+        };
 
-        if (hasImage) {
-           userData.profileData.hasUploadedTwoPhotos = true; 
-           if (userData.state === "AWAITING_PAYMENT_RECEIPT") {
-              userData.state = "PAYMENT_PENDING_APPROVAL";
-              await setDoc(userRef, userData, { merge: true });
-              await sendWhatsAppMessage(from, "Thanks for the receipt! We will verify it and send you the contact details shortly. (ඔබේ රිසිට්පත ලැබුණා! අපි එය පරීක්ෂා කර ඉක්මනින් විස්තර එවන්නම්.)");
-              return new NextResponse('EVENT_RECEIVED', { status: 200 });
-           }
-        }
-
-        // Handle Payment Selection State
-        if (userData.state === "MATCHES_SENT") {
-          const selectionMatch = msgBody.match(/SELECT\s+(\d+)/i);
-          if (selectionMatch) {
-            const matchIndex = parseInt(selectionMatch[1]) - 1;
-            const selectedMatch = userData.currentMatches[matchIndex];
-            if (selectedMatch) {
-              userData.state = "AWAITING_PAYMENT_RECEIPT";
-              userData.selectedMatchId = selectedMatch.id;
-              const reply = `You have selected Match #${matchIndex + 1}. Please deposit Rs.XXXX to Bank Account No: 12345678 (BOC) and send a photo of the bank receipt here to unlock their contact details.`;
-              userData.chatHistory += `\nBot: ${reply}`;
-              await setDoc(userRef, userData, { merge: true });
-              await sendWhatsAppMessage(from, reply);
-              return new NextResponse('EVENT_RECEIVED', { status: 200 });
-            }
-          }
-        }
-
-        // If not in a special state, process with Gemini for onboarding
-        if (userData.state === "ONBOARDING") {
-          const geminiResult = await processMessageWithGemini(msgBody, userData.chatHistory, userData.profileData);
-          
-          if (geminiResult) {
-            userData.profileData = { ...userData.profileData, ...geminiResult.profileData };
-            
-            if (geminiResult.isComplete) {
-              userData.state = "MATCHING";
-              const waitReply = geminiResult.friendlyReply + " Please wait a moment while I find matches for you! (ඔබට ගැලපෙන අය හොයනකම් සුළු මොහොතක් රැඳී සිටින්න!)";
-              userData.chatHistory += `\nBot: ${waitReply}`;
-              await sendWhatsAppMessage(from, waitReply);
-              
-              const matches = await findMatches(userData.profileData);
-              if (matches.length > 0) {
-                userData.state = "MATCHES_SENT";
-                userData.currentMatches = matches;
-                
-                const foundReply = "Here are some matches we found for you! (ඔබට ගැලපෙන අය මෙන්න!)";
-                userData.chatHistory += `\nBot: ${foundReply}`;
-                await sendWhatsAppMessage(from, foundReply);
-                
-                for (let i = 0; i < matches.length; i++) {
-                  const matchMsg = formatMatchMessage(matches[i], i);
-                  userData.chatHistory += `\nBot: ${matchMsg}`;
-                  await sendWhatsAppMessage(from, matchMsg);
-                }
-                const selectReply = "Reply with SELECT 1, SELECT 2, or SELECT 3 to choose your partner!";
-                userData.chatHistory += `\nBot: ${selectReply}`;
-                await sendWhatsAppMessage(from, selectReply);
-              } else {
-                userData.state = "WAITING_FOR_MATCHES";
-                const noMatchReply = "We couldn't find exact matches right now. We will notify you when someone matches your profile! (මේ මොහොතේ ගැලපෙන අය නැත. අලුත් කෙනෙක් ආපු ගමන් අපි ඔබට දැනුම් දෙන්නම්!)";
-                userData.chatHistory += `\nBot: ${noMatchReply}`;
-                await sendWhatsAppMessage(from, noMatchReply);
-              }
-            } else {
-              userData.chatHistory += `\nBot: ${geminiResult.friendlyReply}`;
-              await sendWhatsAppMessage(from, geminiResult.friendlyReply);
-            }
-            
-            await setDoc(userRef, userData, { merge: true });
-          }
-        }
+        await processIncomingMessage(from, msgBody, hasImage, mockSendReply);
     }
     return new NextResponse('EVENT_RECEIVED', { status: 200 });
   } catch (error: any) {
