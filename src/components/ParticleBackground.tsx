@@ -24,14 +24,14 @@ class Particle {
 
     if (isTrail) {
       // Trail particles: quick burst, small size, fast decay
-      this.size = Math.random() * 4 + 2;
+      this.size = Math.random() * 8 + 6; // Increased size
       this.vx = (Math.random() - 0.5) * 4;
       this.vy = (Math.random() - 0.5) * 4;
       this.alpha = 0.8;
       this.decay = Math.random() * 0.02 + 0.015;
     } else {
       // Background floaters: gentle upward drift
-      this.size = Math.random() * 8 + 3;
+      this.size = Math.random() * 16 + 8; // Increased size
       this.vx = (Math.random() - 0.5) * 0.5;
       this.vy = Math.random() * -1 - 0.2;
       this.alpha = Math.random() * 0.4 + 0.1;
