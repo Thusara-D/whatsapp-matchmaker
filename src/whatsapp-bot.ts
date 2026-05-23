@@ -70,6 +70,34 @@ async function connectToWhatsApp() {
         // Pass to our central message processor
         await processIncomingMessage(from, textMessage, hasImage, sendReply);
     });
+
+    // --- IPC Server ---
+    // Start a tiny local HTTP server so the Next.js frontend (e.g. the Payments Approval page)
+    // can ask this standalone bot process to send a WhatsApp message.
+    const http = await import('http');
+    const server = http.createServer((req, res) => {
+        if (req.url === '/send' && req.method === 'POST') {
+            let body = '';
+            req.on('data', chunk => { body += chunk.toString(); });
+            req.on('end', async () => {
+                try {
+                    const { to, text } = JSON.parse(body);
+                    await sock.sendMessage(to, { text });
+                    res.writeHead(200);
+                    res.end('OK');
+                } catch (e: any) {
+                    res.writeHead(500);
+                    res.end(e.toString());
+                }
+            });
+        } else {
+            res.writeHead(404);
+            res.end();
+        }
+    });
+    server.listen(3001, () => {
+        console.log('\n[IPC] Local server listening on port 3001 for Next.js requests.');
+    });
 }
 
 console.log("Starting Baileys WhatsApp Bot...");

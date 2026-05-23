@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "bot": "tsx src/whatsapp-bot.ts"
+    "bot": "tsx --env-file=.env.local src/whatsapp-bot.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.11.1",
