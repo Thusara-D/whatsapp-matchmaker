@@ -225,5 +225,10 @@ export async function processIncomingMessage(
 
   } catch (error) {
     console.error("Error processing message:", error);
+    try {
+      await sendReply(from, "Our system is a bit busy at the moment. Please reply again in a minute! (අපගේ පද්ධතිය මේ මොහොතේ කාර්යබහුලයි. කරුණාකර විනාඩියකින් පමණ නැවත පණිවිඩයක් එවන්න!)");
+    } catch (sendError) {
+      console.error("Failed to send error reply:", sendError);
+    }
   }
 }

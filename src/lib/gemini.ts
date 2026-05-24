@@ -145,35 +145,25 @@ export async function verifySinglePhotoWithGemini(base64Image: string) {
   const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
   const prompt = "Does this image contain a clear human face? Answer ONLY YES or NO.";
   
-  try {
-    const result = await model.generateContent([
-      prompt,
-      { inlineData: { data: base64Image, mimeType: "image/jpeg" } }
-    ]);
-    const responseText = result.response.text().trim().toUpperCase();
-    return responseText.includes("YES");
-  } catch (e) {
-    console.error("Failed to verify single photo with Gemini", e);
-    return false; // Fail safe
-  }
+  const result = await model.generateContent([
+    prompt,
+    { inlineData: { data: base64Image, mimeType: "image/jpeg" } }
+  ]);
+  const responseText = result.response.text().trim().toUpperCase();
+  return responseText.includes("YES");
 }
 
 export async function compareTwoPhotosWithGemini(base64Image1: string, base64Image2: string) {
   const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
   const prompt = "Look at these two photos. Do these two photos belong to the exact same person? Answer ONLY YES or NO.";
   
-  try {
-    const result = await model.generateContent([
-      prompt,
-      { inlineData: { data: base64Image1, mimeType: "image/jpeg" } },
-      { inlineData: { data: base64Image2, mimeType: "image/jpeg" } }
-    ]);
-    const responseText = result.response.text().trim().toUpperCase();
-    return responseText.includes("YES");
-  } catch (e) {
-    console.error("Failed to compare two photos with Gemini", e);
-    return false; // Fail safe
-  }
+  const result = await model.generateContent([
+    prompt,
+    { inlineData: { data: base64Image1, mimeType: "image/jpeg" } },
+    { inlineData: { data: base64Image2, mimeType: "image/jpeg" } }
+  ]);
+  const responseText = result.response.text().trim().toUpperCase();
+  return responseText.includes("YES");
 }
 
 export async function processPostApprovalWithGemini(userMessage: string, chatHistory: string) {
@@ -207,9 +197,10 @@ export async function processPostApprovalWithGemini(userMessage: string, chatHis
     }
   `;
 
+  const result = await model.generateContent(systemInstruction);
+  const responseText = result.response.text();
+  
   try {
-    const result = await model.generateContent(systemInstruction);
-    const responseText = result.response.text();
     return JSON.parse(responseText);
   } catch (e) {
     console.error("Failed to parse Gemini post-approval response as JSON", e);
