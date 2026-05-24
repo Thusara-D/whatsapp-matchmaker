@@ -3,13 +3,21 @@
 import { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { User, Sparkles, HeartHandshake } from "lucide-react";
+import { User, Sparkles, Heart, Camera, Image as ImageIcon, X, ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function UsersPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+
+  // Filters
+  const [genderFilter, setGenderFilter] = useState<"All" | "boy" | "girl">("All");
+  const [ageFilter, setAgeFilter] = useState<string>("All");
+  const [districtFilter, setDistrictFilter] = useState<string>("All");
+
+  // Photo Modal
+  const [selectedPhotos, setSelectedPhotos] = useState<string[] | null>(null);
 
   useEffect(() => {
     async function fetchUsers() {
@@ -33,29 +41,108 @@ export default function UsersPage() {
     fetchUsers();
   }, []);
 
+  const filteredUsers = users.filter(user => {
+    const p = user.profileData || {};
+    
+    // Gender Filter
+    if (genderFilter !== "All" && p.gender?.toLowerCase() !== genderFilter) return false;
+    
+    // Age Filter
+    if (ageFilter !== "All" && p.age) {
+      if (ageFilter === "Under 20" && p.age >= 20) return false;
+      if (ageFilter === "20 - 25" && (p.age < 20 || p.age > 25)) return false;
+      if (ageFilter === "25 - 30" && (p.age <= 25 || p.age > 30)) return false;
+      if (ageFilter === "30 - 35" && (p.age <= 30 || p.age > 35)) return false;
+      if (ageFilter === "40 - 45" && (p.age <= 40 || p.age > 45)) return false;
+    }
+    
+    // District Filter
+    if (districtFilter !== "All" && p.district?.toLowerCase() !== districtFilter.toLowerCase()) return false;
+    
+    return true;
+  });
+
   return (
-      <div className="animate-in slide-in-from-bottom-4 duration-700 ease-out px-2">
-      <div className="mb-10 flex items-center justify-between">
+    <div className="animate-in slide-in-from-bottom-4 duration-700 ease-out px-2">
+      <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-extrabold text-gray-800 dark:text-gray-100 tracking-tight transition-colors">Registered Users</h2>
           <p className="text-gray-500 dark:text-gray-400 text-sm mt-2 font-medium transition-colors">Manage and view details of all your clients.</p>
         </div>
-        <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/50 dark:border-slate-800/50 shadow-sm dark:shadow-[0_0_10px_rgba(236,72,153,0.1)] flex items-center gap-2 transition-colors">
+        <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/50 dark:border-slate-800/50 shadow-sm dark:shadow-[0_0_10px_rgba(236,72,153,0.1)] flex items-center gap-2 transition-colors w-fit">
            <Sparkles className="w-4 h-4 text-rose-500 dark:text-pink-400" />
-           <span className="text-sm font-bold text-gray-700 dark:text-gray-200">{(users || []).length} Total</span>
+           <span className="text-sm font-bold text-gray-700 dark:text-gray-200">{filteredUsers.length} Users</span>
         </div>
+      </div>
+
+      {/* Filters UI */}
+      <div className="mb-6 space-y-4">
+        {/* Gender Tabs */}
+        <div className="flex gap-2">
+          {["All", "boy", "girl"].map(gender => (
+            <button
+              key={gender}
+              onClick={() => { setGenderFilter(gender as any); setAgeFilter("All"); }}
+              className={`px-6 py-2 rounded-full text-sm font-bold transition-all shadow-sm ${
+                genderFilter === gender
+                  ? "bg-rose-500 text-white shadow-rose-500/30"
+                  : "bg-white/60 dark:bg-slate-800/60 text-gray-600 dark:text-gray-300 hover:bg-white/90 border border-white/50 dark:border-slate-700/50"
+              }`}
+            >
+              {gender === "boy" ? "Male" : gender === "girl" ? "Female" : "All Users"}
+            </button>
+          ))}
+        </div>
+
+        {/* Age Group Filters (Only show if a specific gender is selected to keep UI clean, or show always) */}
+        {genderFilter !== "All" && (
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center animate-in fade-in slide-in-from-top-2">
+            <div className="flex flex-wrap gap-2">
+              {["All", "Under 20", "20 - 25", "25 - 30", "30 - 35", "40 - 45"].map(age => (
+                <button
+                  key={age}
+                  onClick={() => setAgeFilter(age)}
+                  className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all shadow-sm ${
+                    ageFilter === age
+                      ? "bg-gray-800 dark:bg-gray-100 text-white dark:text-gray-900 shadow-md"
+                      : "bg-white/40 dark:bg-slate-800/40 text-gray-600 dark:text-gray-300 hover:bg-white/80 border border-white/50 dark:border-slate-700/50"
+                  }`}
+                >
+                  {age === "All" ? "All Ages" : age}
+                </button>
+              ))}
+            </div>
+
+            {/* District Dropdown */}
+            <div className="relative group">
+              <select 
+                value={districtFilter}
+                onChange={(e) => setDistrictFilter(e.target.value)}
+                className="appearance-none bg-white/40 dark:bg-slate-800/40 border border-white/50 dark:border-slate-700/50 text-gray-600 dark:text-gray-300 text-xs font-semibold rounded-full px-4 py-1.5 pr-8 hover:bg-white/80 transition-all shadow-sm outline-none cursor-pointer"
+              >
+                <option value="All">All Districts</option>
+                <option value="Colombo">Colombo</option>
+                <option value="Gampaha">Gampaha</option>
+                <option value="Kandy">Kandy</option>
+                <option value="Kurunegala">Kurunegala</option>
+                <option value="Galle">Galle</option>
+              </select>
+              <ChevronDown className="w-3 h-3 text-gray-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border border-white/60 dark:border-slate-800/50 overflow-hidden transition-colors duration-300">
         {loading ? (
           <div className="p-12 text-center text-gray-500 dark:text-gray-400 font-medium animate-pulse">Loading users...</div>
-        ) : users.length === 0 ? (
+        ) : filteredUsers.length === 0 ? (
           <div className="p-16 text-center flex flex-col items-center justify-center">
             <div className="w-20 h-20 bg-white/80 dark:bg-slate-800/80 rounded-full flex items-center justify-center mb-6 shadow-sm border border-white dark:border-slate-700 transition-colors">
               <User className="w-10 h-10 text-gray-400 dark:text-gray-500" />
             </div>
-            <h3 className="text-xl font-bold text-gray-700 dark:text-gray-200 transition-colors">No users yet</h3>
-            <p className="text-gray-500 dark:text-gray-400 text-sm mt-2 transition-colors">When someone messages your WhatsApp bot, they will appear here.</p>
+            <h3 className="text-xl font-bold text-gray-700 dark:text-gray-200 transition-colors">No users found</h3>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-2 transition-colors">Try adjusting your filters.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -64,42 +151,66 @@ export default function UsersPage() {
                 <tr>
                   <th className="px-8 py-5 font-bold">Phone Number</th>
                   <th className="px-8 py-5 font-bold">Name</th>
-                  <th className="px-8 py-5 font-bold">Gender</th>
+                  <th className="px-8 py-5 font-bold">Gender & Age</th>
                   <th className="px-8 py-5 font-bold">District</th>
                   <th className="px-8 py-5 font-bold">Status</th>
-                  <th className="px-8 py-5 font-bold text-right">Action</th>
+                  <th className="px-8 py-5 font-bold text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/40 dark:divide-slate-800/50">
-                {users.map((user) => (
+                {filteredUsers.map((user) => (
                   <tr key={user.id} className="hover:bg-white/60 dark:hover:bg-slate-800/60 transition-colors duration-200">
                     <td className="px-8 py-5 font-bold text-gray-800 dark:text-gray-200">+{user.id}</td>
                     <td className="px-8 py-5 font-medium text-gray-600 dark:text-gray-400">{user.profileData?.name || "N/A"}</td>
-                    <td className="px-8 py-5 font-medium text-gray-600 dark:text-gray-400 capitalize">{user.profileData?.gender || "N/A"}</td>
+                    <td className="px-8 py-5 font-medium text-gray-600 dark:text-gray-400 capitalize">
+                      {user.profileData?.gender || "N/A"} {user.profileData?.age ? `(${user.profileData.age})` : ""}
+                    </td>
                     <td className="px-8 py-5 font-medium text-gray-600 dark:text-gray-400">{user.profileData?.district || "N/A"}</td>
                     <td className="px-8 py-5">
                       {user.profileData?.isComplete ? (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-100/80 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50 shadow-sm transition-colors">
-                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400"></div>
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.2)] transition-colors">
+                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_#10b981]"></div>
                           Complete
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-100/80 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200/50 dark:border-amber-800/50 shadow-sm transition-colors">
-                          <div className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-amber-400 animate-pulse"></div>
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.2)] transition-colors">
+                          <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_5px_#f59e0b] animate-pulse"></div>
                           Onboarding
                         </span>
                       )}
                     </td>
                     <td className="px-8 py-5 text-right">
-                      {user.profileData?.isComplete && (
-                        <button
-                          onClick={() => router.push(`/dashboard/matches?userId=${user.id}`)}
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-rose-400 to-pink-500 hover:from-rose-500 hover:to-pink-600 text-white text-sm font-bold rounded-xl transition-all shadow-md shadow-rose-500/30 dark:shadow-[0_0_15px_rgba(236,72,153,0.4)] hover:scale-105 active:scale-95"
-                        >
-                          <HeartHandshake className="w-4 h-4" />
-                          Find Match
-                        </button>
-                      )}
+                      <div className="flex items-center justify-end gap-2">
+                        {(() => {
+                          const photos = user.profileData?.photos || user.uploadedPhotos || [];
+                          const hasPhotos = photos.length > 0;
+                          return (
+                            <button
+                              onClick={() => hasPhotos && setSelectedPhotos(photos)}
+                              disabled={!hasPhotos}
+                              className={`inline-flex items-center gap-1.5 px-3 py-2 text-sm font-bold rounded-xl border transition-all shadow-sm ${
+                                hasPhotos 
+                                  ? "bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-slate-600 cursor-pointer" 
+                                  : "bg-gray-100 dark:bg-slate-800/50 text-gray-400 dark:text-gray-600 border-gray-200/50 dark:border-slate-700/50 cursor-not-allowed opacity-60"
+                              }`}
+                              title={hasPhotos ? "View Photos" : "No photos uploaded yet"}
+                            >
+                              <Camera className={`w-4 h-4 ${hasPhotos ? "text-blue-500" : "text-gray-400 dark:text-gray-600"}`} />
+                              Photos
+                            </button>
+                          );
+                        })()}
+
+                        {user.profileData?.isComplete && (
+                          <button
+                            onClick={() => router.push(`/dashboard/matches?userId=${user.id}`)}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-rose-400 to-pink-500 hover:from-rose-500 hover:to-pink-600 text-white text-sm font-bold rounded-xl transition-all shadow-[0_0_15px_rgba(244,63,94,0.4)] hover:shadow-[0_0_20px_rgba(244,63,94,0.6)] hover:scale-105 active:scale-95"
+                          >
+                            <Heart className="w-4 h-4 fill-white/20" />
+                            Match
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -108,6 +219,33 @@ export default function UsersPage() {
           </div>
         )}
       </div>
+
+      {/* Photos Modal */}
+      {selectedPhotos && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden max-w-3xl w-full shadow-2xl border border-white/20">
+            <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex justify-between items-center bg-gray-50/50 dark:bg-slate-800/50">
+              <h3 className="font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                <ImageIcon className="w-5 h-5 text-rose-500" /> Verified Photos
+              </h3>
+              <button 
+                onClick={() => setSelectedPhotos(null)}
+                className="p-2 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-full transition-colors text-gray-500"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-100/50 dark:bg-slate-900/80 min-h-[300px]">
+              {selectedPhotos.map((url, i) => (
+                <div key={i} className="relative rounded-2xl overflow-hidden shadow-sm border border-white/50 dark:border-slate-700 bg-gray-200 dark:bg-slate-800 flex items-center justify-center aspect-[3/4]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={url} alt={`User Photo ${i + 1}`} className="object-cover w-full h-full" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
