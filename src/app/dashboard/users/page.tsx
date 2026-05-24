@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { User, Sparkles, Heart, Camera, Image as ImageIcon, X, ChevronDown } from "lucide-react";
+import { User, Sparkles, Heart, Camera, Image as ImageIcon, X, ChevronDown, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function UsersPage() {
@@ -15,6 +15,7 @@ export default function UsersPage() {
   const [genderFilter, setGenderFilter] = useState<"All" | "boy" | "girl">("All");
   const [ageFilter, setAgeFilter] = useState<string>("All");
   const [districtFilter, setDistrictFilter] = useState<string>("All");
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Photo Modal
   const [selectedPhotos, setSelectedPhotos] = useState<string[] | null>(null);
@@ -41,8 +42,23 @@ export default function UsersPage() {
     fetchUsers();
   }, []);
 
+  const cleanPhoneNumber = (rawId: string) => {
+    if (!rawId) return "";
+    return "+" + rawId.split("@")[0];
+  };
+
   const filteredUsers = users.filter(user => {
     const p = user.profileData || {};
+    
+    // Search Filter
+    if (searchQuery.trim() !== "") {
+      const query = searchQuery.toLowerCase();
+      const phoneStr = cleanPhoneNumber(user.id).toLowerCase();
+      const nameStr = (p.name || "").toLowerCase();
+      if (!phoneStr.includes(query) && !nameStr.includes(query)) {
+        return false;
+      }
+    }
     
     // Gender Filter
     if (genderFilter !== "All" && p.gender?.toLowerCase() !== genderFilter) return false;
@@ -77,21 +93,36 @@ export default function UsersPage() {
 
       {/* Filters UI */}
       <div className="mb-6 space-y-4">
-        {/* Gender Tabs */}
-        <div className="flex gap-2">
-          {["All", "boy", "girl"].map(gender => (
-            <button
-              key={gender}
-              onClick={() => { setGenderFilter(gender as any); setAgeFilter("All"); }}
-              className={`px-6 py-2 rounded-full text-sm font-bold transition-all shadow-sm ${
-                genderFilter === gender
-                  ? "bg-rose-500 text-white shadow-rose-500/30"
-                  : "bg-white/60 dark:bg-slate-800/60 text-gray-600 dark:text-gray-300 hover:bg-white/90 border border-white/50 dark:border-slate-700/50"
-              }`}
-            >
-              {gender === "boy" ? "Male" : gender === "girl" ? "Female" : "All Users"}
-            </button>
-          ))}
+        {/* Top Row: Gender Tabs & Search */}
+        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+          {/* Gender Tabs */}
+          <div className="flex gap-2">
+            {["All", "boy", "girl"].map(gender => (
+              <button
+                key={gender}
+                onClick={() => { setGenderFilter(gender as any); setAgeFilter("All"); }}
+                className={`px-6 py-2 rounded-full text-sm font-bold transition-all shadow-sm ${
+                  genderFilter === gender
+                    ? "bg-rose-500 text-white shadow-rose-500/30"
+                    : "bg-white/60 dark:bg-slate-800/60 text-gray-600 dark:text-gray-300 hover:bg-white/90 border border-white/50 dark:border-slate-700/50"
+                }`}
+              >
+                {gender === "boy" ? "Male" : gender === "girl" ? "Female" : "All Users"}
+              </button>
+            ))}
+          </div>
+
+          {/* Search Bar */}
+          <div className="relative w-full md:w-72">
+            <input 
+              type="text" 
+              placeholder="Search by name or phone..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-white/60 dark:bg-slate-800/60 border border-white/50 dark:border-slate-700/50 text-gray-700 dark:text-gray-200 text-sm font-medium rounded-full pl-10 pr-4 py-2 hover:bg-white/80 focus:bg-white dark:focus:bg-slate-800 transition-all shadow-sm outline-none placeholder:text-gray-400"
+            />
+            <Search className="w-4 h-4 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
+          </div>
         </div>
 
         {/* Age Group Filters (Only show if a specific gender is selected to keep UI clean, or show always) */}
@@ -160,7 +191,7 @@ export default function UsersPage() {
               <tbody className="divide-y divide-white/40 dark:divide-slate-800/50">
                 {filteredUsers.map((user) => (
                   <tr key={user.id} className="hover:bg-white/60 dark:hover:bg-slate-800/60 transition-colors duration-200">
-                    <td className="px-8 py-5 font-bold text-gray-800 dark:text-gray-200">+{user.id}</td>
+                    <td className="px-8 py-5 font-bold text-gray-800 dark:text-gray-200">{cleanPhoneNumber(user.id)}</td>
                     <td className="px-8 py-5 font-medium text-gray-600 dark:text-gray-400">{user.profileData?.name || "N/A"}</td>
                     <td className="px-8 py-5 font-medium text-gray-600 dark:text-gray-400 capitalize">
                       {user.profileData?.gender || "N/A"} {user.profileData?.age ? `(${user.profileData.age})` : ""}
