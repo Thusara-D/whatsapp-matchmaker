@@ -1,7 +1,7 @@
 import { db } from './firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 
-export async function findMatches(userProfile: any) {
+export async function findMatches(userProfile: any, excludeIds: string[] = []) {
   const usersRef = collection(db, 'users');
   
   // Basic query: opposite gender
@@ -16,6 +16,9 @@ export async function findMatches(userProfile: any) {
   
   const matches: any[] = [];
   querySnapshot.forEach((doc) => {
+    // Skip if we already showed this match to the user
+    if (excludeIds.includes(doc.id)) return;
+    
     const data = doc.data();
     // Only return complete profiles
     if (data.profileData && data.profileData.isComplete !== false) {

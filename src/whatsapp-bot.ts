@@ -56,6 +56,22 @@ async function connectToWhatsApp() {
         
         // Extract image if present
         const hasImage = !!msg.message.imageMessage;
+        let base64Image: string | null = null;
+        
+        if (hasImage) {
+            try {
+                const { downloadMediaMessage } = await import('@whiskeysockets/baileys');
+                const buffer = await downloadMediaMessage(
+                    msg,
+                    'buffer',
+                    { },
+                    { logger: undefined, reuploadRequest: sock.updateMediaMessage }
+                ) as Buffer;
+                base64Image = buffer.toString('base64');
+            } catch (err) {
+                console.error("Error downloading image from WhatsApp:", err);
+            }
+        }
 
         // Ignore empty messages unless it's an image
         if (!textMessage.trim() && !hasImage) return;
@@ -64,11 +80,22 @@ async function connectToWhatsApp() {
 
         // Send reply callback using Baileys socket
         const sendReply = async (to: string, text: string) => {
+            // Simulate human typing delay
+            console.log(`[Baileys] Simulating typing for 5 seconds to ${to}...`);
+            await sock.sendPresenceUpdate('composing', to);
+            
+            // Wait for 5 seconds
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            
+            // Clear typing status (usually automatic, but good practice)
+            await sock.sendPresenceUpdate('paused', to);
+            
+            // Send the actual message
             await sock.sendMessage(to, { text });
         };
 
         // Pass to our central message processor
-        await processIncomingMessage(from, textMessage, hasImage, sendReply);
+        await processIncomingMessage(from, textMessage, base64Image, sendReply);
     });
 
     // --- IPC Server ---
