@@ -37,6 +37,7 @@ export async function processMessageWithGemini(userMessage: string, chatHistory:
     12. විවාහක/අවිවාහක (Marital Status)
     13. සහකරු/සහකාරියගේ වයස් පරතරය (Partner Age Gap)
     14. සහකරු හෝ සහකාරිය මොන වගේ වෙන්න ඕනද? ගැහැණු ළමයෙක්ද පිරිමි ළමයෙක්ද? (Partner Preferences & Gender they are looking for)
+    15. වෙනත් විස්තර (Additional Details - anything else they mentioned)
 
     Current Profile State: ${JSON.stringify(currentProfileState)}
     Chat History: ${chatHistory}
@@ -68,6 +69,7 @@ export async function processMessageWithGemini(userMessage: string, chatHistory:
          "maritalStatus": "string",
          "partnerAgeGap": "string",
          "partnerPreferences": "string",
+         "additionalDetails": "string",
          "hasUploadedTwoPhotos": false
       }
     }

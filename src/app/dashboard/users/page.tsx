@@ -20,6 +20,9 @@ export default function UsersPage() {
   // Photo Modal
   const [selectedPhotos, setSelectedPhotos] = useState<string[] | null>(null);
 
+  // Details Modal
+  const [selectedUserDetails, setSelectedUserDetails] = useState<any>(null);
+
   useEffect(() => {
     async function fetchUsers() {
       try {
@@ -254,6 +257,15 @@ export default function UsersPage() {
                           );
                         })()}
 
+                        <button
+                           onClick={() => setSelectedUserDetails(user)}
+                           className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-bold rounded-xl border transition-all shadow-sm bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-slate-600 cursor-pointer"
+                           title="View Full Profile Details"
+                         >
+                           <User className="w-4 h-4 text-emerald-500" />
+                           Details
+                         </button>
+
                         {user.state === 'AWAITING_PARTNER_APPROVAL' && user.selectedMatchId && (
                           <button
                             onClick={() => handleAskPartner(user.id, user.selectedMatchId)}
@@ -304,6 +316,59 @@ export default function UsersPage() {
                   <img src={url} alt={`User Photo ${i + 1}`} className="object-cover w-full h-full" />
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Details Modal */}
+      {selectedUserDetails && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden max-w-2xl w-full shadow-2xl border border-white/20 max-h-[90vh] flex flex-col">
+            <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex justify-between items-center bg-gray-50/50 dark:bg-slate-800/50 shrink-0">
+              <h3 className="font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                <User className="w-5 h-5 text-emerald-500" /> Full Profile Details
+              </h3>
+              <button 
+                onClick={() => setSelectedUserDetails(null)}
+                className="p-2 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-full transition-colors text-gray-500"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto space-y-4 bg-gray-50/50 dark:bg-slate-900/50">
+              {(() => {
+                 const p = selectedUserDetails.profileData || {};
+                 const details = [
+                   { label: "Name", value: p.name },
+                   { label: "Phone", value: cleanPhoneNumber(selectedUserDetails.id) },
+                   { label: "Gender", value: p.gender },
+                   { label: "Looking For", value: p.lookingForGender },
+                   { label: "Age", value: p.age },
+                   { label: "Birth Date", value: p.birthYear ? `${p.birthYear}-${p.birthMonth}-${p.birthDay}` : "" },
+                   { label: "Height", value: p.height },
+                   { label: "Weight", value: p.weight },
+                   { label: "Skin Color", value: p.skinColor },
+                   { label: "Village", value: p.village },
+                   { label: "District", value: p.district },
+                   { label: "Education", value: p.education },
+                   { label: "Job", value: p.job },
+                   { label: "Marital Status", value: p.maritalStatus },
+                   { label: "Partner Age Gap", value: p.partnerAgeGap },
+                   { label: "Partner Preferences", value: p.partnerPreferences },
+                   { label: "Additional Details", value: p.additionalDetails },
+                 ];
+                 return (
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     {details.map((item, idx) => (
+                       <div key={idx} className="bg-white dark:bg-slate-800 p-3 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
+                         <div className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">{item.label}</div>
+                         <div className="text-sm font-medium text-gray-800 dark:text-gray-200 whitespace-pre-wrap">{item.value || <span className="text-gray-300 dark:text-gray-600 italic">Not provided</span>}</div>
+                       </div>
+                     ))}
+                   </div>
+                 );
+              })()}
             </div>
           </div>
         </div>
