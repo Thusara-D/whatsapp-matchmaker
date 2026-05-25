@@ -65,8 +65,8 @@ export async function processIncomingMessage(
           return;
        } else if (userData.state === "ONBOARDING" || !userData.profileData.hasUploadedTwoPhotos) {
           const { verifySinglePhotoWithGemini, compareTwoPhotosWithGemini } = await import('@/lib/gemini');
-          const { ref, uploadString, getDownloadURL } = await import('firebase/storage');
-          const { storage } = await import('@/lib/firebase');
+          const fs = await import('fs');
+          const path = await import('path');
 
           const isHumanFace = await verifySinglePhotoWithGemini(base64Image);
           if (!isHumanFace) {
@@ -74,10 +74,19 @@ export async function processIncomingMessage(
              return;
           }
 
-          // Upload to Firebase Storage
-          const storageRef = ref(storage, `profiles/${from}/${Date.now()}.jpg`);
-          await uploadString(storageRef, base64Image, 'base64');
-          const photoUrl = await getDownloadURL(storageRef);
+          // Save locally for testing
+          const filename = `${from}_${Date.now()}.jpg`;
+          const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+          if (!fs.existsSync(uploadDir)) {
+             fs.mkdirSync(uploadDir, { recursive: true });
+          }
+          const filePath = path.join(uploadDir, filename);
+          
+          // Strip data URI prefix if it exists
+          const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, "");
+          fs.writeFileSync(filePath, base64Data, { encoding: 'base64' });
+          
+          const photoUrl = `/uploads/${filename}`;
 
           if (!userData.uploadedPhotos) userData.uploadedPhotos = [];
           userData.uploadedPhotos.push(photoUrl);
@@ -89,9 +98,17 @@ export async function processIncomingMessage(
              const firstPhotoUrl = userData.uploadedPhotos[0];
              let firstBase64 = "";
              try {
-                 const res = await fetch(firstPhotoUrl);
-                 const arrayBuffer = await res.arrayBuffer();
-                 firstBase64 = Buffer.from(arrayBuffer).toString('base64');
+                 if (firstPhotoUrl.startsWith('/uploads/')) {
+                     const fs = await import('fs');
+                     const path = await import('path');
+                     const localPath = path.join(process.cwd(), 'public', firstPhotoUrl);
+                     const fileBuffer = fs.readFileSync(localPath);
+                     firstBase64 = fileBuffer.toString('base64');
+                 } else {
+                     const res = await fetch(firstPhotoUrl);
+                     const arrayBuffer = await res.arrayBuffer();
+                     firstBase64 = Buffer.from(arrayBuffer).toString('base64');
+                 }
              } catch (e) {
                  console.error("Failed to fetch first photo", e);
              }
