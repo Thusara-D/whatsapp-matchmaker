@@ -207,3 +207,18 @@ export async function processPostApprovalWithGemini(userMessage: string, chatHis
     return null;
   }
 }
+
+export async function processPitchReplyWithGemini(userMessage: string) {
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+  const prompt = `
+    A user has been sent a matchmaking pitch asking if they approve a partner.
+    Their reply is: "${userMessage}"
+    Does their reply indicate YES (approval/acceptance) or NO (rejection/decline)?
+    If they are asking a question, treat it as NO for now, or just focus on if it's a clear YES.
+    Answer ONLY YES or NO.
+  `;
+  
+  const result = await model.generateContent(prompt);
+  const responseText = result.response.text().trim().toUpperCase();
+  return responseText.includes("YES");
+}

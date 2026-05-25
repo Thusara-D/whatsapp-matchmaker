@@ -65,7 +65,7 @@ async function connectToWhatsApp() {
                     msg,
                     'buffer',
                     { },
-                    { logger: undefined, reuploadRequest: sock.updateMediaMessage }
+                    { logger: undefined as any, reuploadRequest: sock.updateMediaMessage }
                 ) as Buffer;
                 base64Image = buffer.toString('base64');
             } catch (err) {

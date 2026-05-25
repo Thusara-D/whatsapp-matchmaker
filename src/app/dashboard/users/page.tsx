@@ -47,6 +47,23 @@ export default function UsersPage() {
     return "+" + rawId.split("@")[0];
   };
 
+  const handleAskPartner = async (userId: string, partnerId: string) => {
+    try {
+      const res = await fetch('/api/ask-partner', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, partnerId })
+      });
+      if (res.ok) {
+        alert("Pitch sent to partner successfully!");
+      } else {
+        alert("Failed to send pitch.");
+      }
+    } catch (e) {
+      alert("Error sending pitch.");
+    }
+  };
+
   const filteredUsers = users.filter(user => {
     const p = user.profileData || {};
     
@@ -198,7 +215,12 @@ export default function UsersPage() {
                     </td>
                     <td className="px-8 py-5 font-medium text-gray-600 dark:text-gray-400">{user.profileData?.district || "N/A"}</td>
                     <td className="px-8 py-5">
-                      {user.profileData?.isComplete ? (
+                      {user.state === 'AWAITING_PARTNER_APPROVAL' ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30 transition-colors">
+                          <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
+                          Wait Partner
+                        </span>
+                      ) : user.profileData?.isComplete ? (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.2)] transition-colors">
                           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_#10b981]"></div>
                           Complete
@@ -232,7 +254,16 @@ export default function UsersPage() {
                           );
                         })()}
 
-                        {user.profileData?.isComplete && (
+                        {user.state === 'AWAITING_PARTNER_APPROVAL' && user.selectedMatchId && (
+                          <button
+                            onClick={() => handleAskPartner(user.id, user.selectedMatchId)}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white text-sm font-bold rounded-xl transition-all shadow-md active:scale-95"
+                          >
+                            Ask Partner
+                          </button>
+                        )}
+
+                        {user.profileData?.isComplete && user.state !== 'AWAITING_PARTNER_APPROVAL' && (
                           <button
                             onClick={() => router.push(`/dashboard/matches?userId=${user.id}`)}
                             className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-rose-400 to-pink-500 hover:from-rose-500 hover:to-pink-600 text-white text-sm font-bold rounded-xl transition-all shadow-[0_0_15px_rgba(244,63,94,0.4)] hover:shadow-[0_0_20px_rgba(244,63,94,0.6)] hover:scale-105 active:scale-95"

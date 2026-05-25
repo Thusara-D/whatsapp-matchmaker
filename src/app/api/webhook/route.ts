@@ -13,9 +13,9 @@ export async function POST(request: Request) {
         const msgBody = message.text?.body || "";
         const msgType = message.type;
 
-        let hasImage = false;
+        let base64Image: string | null = null;
         if (msgType === 'image') {
-          hasImage = true;
+          base64Image = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAAD"; // dummy for simulator
         }
 
         // The simulator doesn't strictly need a functional sendReply callback 
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
            console.log(`[Simulator Webhook] Simulated reply to ${to}: ${text}`);
         };
 
-        await processIncomingMessage(from, msgBody, hasImage, mockSendReply);
+        await processIncomingMessage(from, msgBody, base64Image, mockSendReply);
     }
     return new NextResponse('EVENT_RECEIVED', { status: 200 });
   } catch (error: any) {
