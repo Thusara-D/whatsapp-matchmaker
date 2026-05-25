@@ -12,7 +12,9 @@ function MatchContent() {
   const [loading, setLoading] = useState(false);
   const [targetUser, setTargetUser] = useState<any>(null);
   const [matches, setMatches] = useState<any[]>([]);
+  const [shownMatchIds, setShownMatchIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
     if (userId) {
@@ -20,15 +22,17 @@ function MatchContent() {
     }
   }, [userId]);
 
-  async function findMatches(id: string) {
+  async function findMatches(id: string, excludeIds: string[] = []) {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/match?userId=${id}`);
+      const excludeParam = excludeIds.length > 0 ? `&exclude=${excludeIds.join(',')}` : '';
+      const res = await fetch(`/api/match?userId=${id}${excludeParam}`);
       const data = await res.json();
       if (res.ok) {
         setTargetUser(data.targetUser);
         setMatches(data.matches);
+        setShownMatchIds(prev => [...prev, ...data.matches.map((m: any) => m.id)]);
       } else {
         setError(data.error);
       }
@@ -36,6 +40,27 @@ function MatchContent() {
       setError("Failed to fetch matches from AI.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleSendMatches() {
+    if (!userId || matches.length === 0) return;
+    setIsSending(true);
+    try {
+      const res = await fetch("/api/send-matches", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, matches }),
+      });
+      if (res.ok) {
+        alert("Matches successfully sent to client via WhatsApp!");
+      } else {
+        alert("Failed to send matches.");
+      }
+    } catch (e) {
+      alert("Error sending matches.");
+    } finally {
+      setIsSending(false);
     }
   }
 
@@ -70,9 +95,28 @@ function MatchContent() {
           <p className="text-gray-500 dark:text-gray-400 text-sm mt-2 font-medium transition-colors">Gemini AI has analyzed thousands of data points to find the perfect fit.</p>
         </div>
         {targetUser && (
-          <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/50 dark:border-slate-800/50 shadow-sm transition-colors">
-             <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold uppercase transition-colors">Finding matches for</p>
-             <p className="text-lg font-bold text-rose-600 dark:text-pink-400 transition-colors">{targetUser.name}</p>
+          <div className="flex flex-col items-end gap-3">
+            <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/50 dark:border-slate-800/50 shadow-sm transition-colors">
+               <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold uppercase transition-colors">Finding matches for</p>
+               <p className="text-lg font-bold text-rose-600 dark:text-pink-400 transition-colors">{targetUser.name}</p>
+            </div>
+            {matches.length > 0 && !loading && (
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => findMatches(userId, shownMatchIds)} 
+                  className="px-4 py-2 bg-slate-800 dark:bg-slate-700 text-white rounded-xl text-sm font-bold shadow-md hover:bg-slate-700 transition-all active:scale-95"
+                >
+                  MATCH MORE
+                </button>
+                <button 
+                  onClick={handleSendMatches} 
+                  disabled={isSending} 
+                  className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-emerald-500/20 hover:scale-105 transition-all disabled:opacity-50 disabled:scale-100 active:scale-95"
+                >
+                  {isSending ? "Sending..." : "Send to Client"}
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

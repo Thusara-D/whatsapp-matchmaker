@@ -9,6 +9,8 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
+    const excludeParam = searchParams.get('exclude'); // comma separated list of IDs to exclude
+    const excludeIds = excludeParam ? excludeParam.split(',') : [];
 
     if (!userId) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
@@ -37,8 +39,8 @@ export async function GET(request: Request) {
     
     const candidates: any[] = [];
     querySnapshot.forEach((doc) => {
-      // Don't match with themselves
-      if (doc.id !== userId) {
+      // Don't match with themselves and don't match with already shown candidates
+      if (doc.id !== userId && !excludeIds.includes(doc.id)) {
         candidates.push({ id: doc.id, ...doc.data().profileData });
       }
     });
