@@ -88,14 +88,21 @@ export async function processIncomingMessage(
           
           const photoUrl = `/uploads/${filename}`;
 
-          if (!userData.uploadedPhotos) userData.uploadedPhotos = [];
-          userData.uploadedPhotos.push(photoUrl);
+          const { arrayUnion } = await import('firebase/firestore');
+          await setDoc(userRef, {
+             uploadedPhotos: arrayUnion(photoUrl)
+          }, { merge: true });
 
-          if (userData.uploadedPhotos.length === 1) {
-             await setDoc(userRef, userData, { merge: true });
+          const updatedSnap = await getDoc(userRef);
+          const updatedDoc = updatedSnap.data() as any;
+          const length = updatedDoc?.uploadedPhotos?.length || 0;
+          console.log("Verified Array Length in DB:", length);
+
+          if (length === 1) {
              return;
-          } else if (userData.uploadedPhotos.length >= 2) {
-             const firstPhotoUrl = userData.uploadedPhotos[0];
+          } else if (length >= 2) {
+             console.log("Triggering Gemini Face Verification now...");
+             const firstPhotoUrl = updatedDoc.uploadedPhotos[0];
              let firstBase64 = "";
              try {
                  if (firstPhotoUrl.startsWith('/uploads/')) {
@@ -117,19 +124,19 @@ export async function processIncomingMessage(
                  const isSamePerson = await compareTwoPhotosWithGemini(firstBase64, base64Image);
                  if (!isSamePerson) {
                      // SILENT REJECTION - Reset photos
-                     userData.uploadedPhotos = [];
-                     await setDoc(userRef, userData, { merge: true });
+                     updatedDoc.uploadedPhotos = [];
+                     await setDoc(userRef, updatedDoc, { merge: true });
                      return;
                  }
              }
              
-             userData.profileData.hasUploadedTwoPhotos = true;
-             userData.profileData.photos = userData.uploadedPhotos;
+             updatedDoc.profileData.hasUploadedTwoPhotos = true;
+             updatedDoc.profileData.photos = updatedDoc.uploadedPhotos;
              
-             if (userData.profileData.isComplete) {
-                userData.state = "WAITING_FOR_ADMIN";
+             if (updatedDoc.profileData.isComplete) {
+                updatedDoc.state = "WAITING_FOR_ADMIN";
              }
-             await setDoc(userRef, userData, { merge: true });
+             await setDoc(userRef, updatedDoc, { merge: true });
              return;
           }
        }
