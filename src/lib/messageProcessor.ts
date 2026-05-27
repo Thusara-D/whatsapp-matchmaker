@@ -1,6 +1,6 @@
 import { processMessageWithGemini } from '@/lib/gemini';
 import { db } from '@/lib/firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, arrayUnion } from 'firebase/firestore';
 import { sendWhatsAppMessage } from '@/lib/whatsapp';
 
 export async function processIncomingMessage(
@@ -88,7 +88,7 @@ export async function processIncomingMessage(
           
           const photoUrl = `/uploads/${filename}`;
 
-          const { arrayUnion } = await import('firebase/firestore');
+
           await setDoc(userRef, {
              uploadedPhotos: arrayUnion(photoUrl)
           }, { merge: true });
