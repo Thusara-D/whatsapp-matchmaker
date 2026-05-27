@@ -121,22 +121,26 @@ export async function processIncomingMessage(
              }
 
              if (firstBase64) {
-                 const isSamePerson = await compareTwoPhotosWithGemini(firstBase64, base64Image);
-                 if (!isSamePerson) {
-                     // SILENT REJECTION - Reset photos
-                     updatedDoc.uploadedPhotos = [];
-                     await setDoc(userRef, updatedDoc, { merge: true });
+                 try {
+                     const isSamePerson = await compareTwoPhotosWithGemini(firstBase64, base64Image);
+                     if (!isSamePerson) {
+                         // SILENT REJECTION - Reset photos
+                         updatedDoc.uploadedPhotos = [];
+                         await setDoc(userRef, updatedDoc, { merge: true });
+                         return;
+                     }
+                 } catch (error) {
+                     console.error("Gemini Face Verification Failed with error:", error);
                      return;
                  }
              }
              
              updatedDoc.profileData.hasUploadedTwoPhotos = true;
              updatedDoc.profileData.photos = updatedDoc.uploadedPhotos;
+             updatedDoc.state = "COMPLETE";
              
-             if (updatedDoc.profileData.isComplete) {
-                updatedDoc.state = "WAITING_FOR_ADMIN";
-             }
              await setDoc(userRef, updatedDoc, { merge: true });
+             console.log("Successfully updated state to COMPLETE in DB!");
              return;
           }
        }
@@ -163,7 +167,7 @@ export async function processIncomingMessage(
     }
 
     // Process general onboarding data silently
-    if ((userData.state === "ONBOARDING" || userData.state === "WAITING_FOR_ADMIN") && !base64Image && msgBody) {
+    if ((userData.state === "ONBOARDING" || userData.state === "WAITING_FOR_ADMIN" || userData.state === "COMPLETE") && !base64Image && msgBody) {
       const geminiResult = await processMessageWithGemini(msgBody, userData.chatHistory, userData.profileData);
       
       if (geminiResult) {

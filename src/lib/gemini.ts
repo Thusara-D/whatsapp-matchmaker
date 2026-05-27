@@ -165,6 +165,7 @@ export async function compareTwoPhotosWithGemini(base64Image1: string, base64Ima
     { inlineData: { data: base64Image2, mimeType: "image/jpeg" } }
   ]);
   const responseText = result.response.text().trim().toUpperCase();
+  console.log("Gemini Raw Response:", responseText);
   return responseText.includes("YES");
 }
 
