@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { User, Sparkles, Heart, Camera, Image as ImageIcon, X, ChevronDown, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -24,25 +24,20 @@ export default function UsersPage() {
   const [selectedUserDetails, setSelectedUserDetails] = useState<any>(null);
 
   useEffect(() => {
-    async function fetchUsers() {
-      try {
-        const usersRef = collection(db, "users");
-        const snap = await getDocs(usersRef);
-        
-        const fetchedUsers: any[] = [];
-        snap.forEach((doc) => {
-          fetchedUsers.push({ id: doc.id, ...doc.data() });
-        });
-
-        setUsers(fetchedUsers);
-      } catch (error) {
-        console.error("Failed to fetch users", error);
-      } finally {
-        setLoading(false);
-      }
-    }
+    const usersRef = collection(db, "users");
+    const unsubscribe = onSnapshot(usersRef, (snap) => {
+      const fetchedUsers: any[] = [];
+      snap.forEach((doc) => {
+        fetchedUsers.push({ id: doc.id, ...doc.data() });
+      });
+      setUsers(fetchedUsers);
+      setLoading(false);
+    }, (error) => {
+      console.error("Failed to fetch users", error);
+      setLoading(false);
+    });
     
-    fetchUsers();
+    return () => unsubscribe();
   }, []);
 
   const cleanPhoneNumber = (rawId: string) => {
