@@ -12,7 +12,7 @@ export async function processIncomingMessage(
   try {
     const userRef = doc(db, 'users', from);
     const userSnap = await getDoc(userRef);
-    let userData = userSnap.exists() ? userSnap.data() : { profileData: {}, chatHistory: "", state: "ONBOARDING", currentMatches: [], uploadedPhotos: [] };
+    let userData = userSnap.exists() ? userSnap.data() : { profileData: {}, chatHistory: "", status: "ONBOARDING", currentMatches: [], uploadedPhotos: [] };
     
     if (msgBody) userData.chatHistory += `\nUser: ${msgBody}`;
 
@@ -30,7 +30,7 @@ export async function processIncomingMessage(
         
         if (isYes) {
           // Partner approved! Update Nimal to AWAITING_PAYMENT_RECEIPT
-          sourceUserData.state = 'AWAITING_PAYMENT_RECEIPT';
+          sourceUserData.status = 'AWAITING_PAYMENT_RECEIPT';
           await setDoc(sourceUserRef, sourceUserData, { merge: true });
           
           // Send Nimal the bank details message
@@ -44,7 +44,7 @@ export async function processIncomingMessage(
           await sendReply(from, "Thank you! We have notified the partner. They will complete the payment to receive your contact details.");
         } else {
           // Partner rejected
-          sourceUserData.state = 'PARTNER_REJECTED';
+          sourceUserData.status = 'PARTNER_REJECTED';
           await setDoc(sourceUserRef, sourceUserData, { merge: true });
           
           await sendReply(from, "Understood. We will let them know this is not a match and keep looking for your perfect partner.");
@@ -58,12 +58,12 @@ export async function processIncomingMessage(
     }
 
     if (base64Image) {
-       if (userData.state === "AWAITING_PAYMENT_RECEIPT") {
-          userData.state = "PAYMENT_PENDING_APPROVAL";
+       if (userData.status === "AWAITING_PAYMENT_RECEIPT") {
+          userData.status = "PAYMENT_PENDING_APPROVAL";
           await setDoc(userRef, userData, { merge: true });
           // SILENT: No reply sent
           return;
-       } else if (userData.state === "ONBOARDING" || !userData.profileData.hasUploadedTwoPhotos) {
+       } else if (userData.status === "ONBOARDING" || !userData.profileData.hasUploadedTwoPhotos) {
           const { verifySinglePhotoWithGemini, compareTwoPhotosWithGemini } = await import('@/lib/gemini');
           const fs = await import('fs');
           const path = await import('path');
@@ -137,7 +137,7 @@ export async function processIncomingMessage(
              
              updatedDoc.profileData.hasUploadedTwoPhotos = true;
              updatedDoc.profileData.photos = updatedDoc.uploadedPhotos;
-             updatedDoc.state = "COMPLETE";
+             updatedDoc.status = "COMPLETE";
              
              await setDoc(userRef, updatedDoc, { merge: true });
              console.log("Successfully updated state to COMPLETE in DB!");
@@ -147,12 +147,12 @@ export async function processIncomingMessage(
     }
 
     // Handle Smart Match Selection 
-    if (userData.state === "MATCHES_SENT" && !base64Image && msgBody) {
+    if (userData.status === "MATCHES_SENT" && !base64Image && msgBody) {
       const { processMatchSelectionWithGemini } = await import('@/lib/gemini');
       const selectionResult = await processMatchSelectionWithGemini(msgBody, userData.chatHistory, userData.currentMatches);
       
       if (selectionResult && selectionResult.intent === "SELECT_MATCH" && selectionResult.selectedMatchId) {
-        userData.state = "AWAITING_PARTNER_APPROVAL"; // Used to be AWAITING_PAYMENT_RECEIPT
+        userData.status = "AWAITING_PARTNER_APPROVAL"; // Used to be AWAITING_PAYMENT_RECEIPT
         userData.selectedMatchId = selectionResult.selectedMatchId;
         
         await setDoc(userRef, userData, { merge: true });
@@ -167,14 +167,14 @@ export async function processIncomingMessage(
     }
 
     // Process general onboarding data silently
-    if ((userData.state === "ONBOARDING" || userData.state === "WAITING_FOR_ADMIN" || userData.state === "COMPLETE") && !base64Image && msgBody) {
+    if ((userData.status === "ONBOARDING" || userData.status === "WAITING_FOR_ADMIN" || userData.status === "COMPLETE") && !base64Image && msgBody) {
       const geminiResult = await processMessageWithGemini(msgBody, userData.chatHistory, userData.profileData);
       
       if (geminiResult) {
         userData.profileData = { ...userData.profileData, ...geminiResult.profileData };
         
         if (geminiResult.isComplete && userData.profileData.hasUploadedTwoPhotos) {
-          userData.state = "WAITING_FOR_ADMIN";
+          userData.status = "WAITING_FOR_ADMIN";
         }
         
         await setDoc(userRef, userData, { merge: true });

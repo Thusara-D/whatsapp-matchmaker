@@ -28,8 +28,8 @@ export default function DashboardOverview() {
           total++;
           const data = doc.data();
           if (data.profileData?.isComplete) complete++;
-          if (data.state === "PAYMENT_PENDING_APPROVAL") pending++;
-          if (data.state === "MATCH_APPROVED") approved++;
+          if (data.status === "PAYMENT_PENDING_APPROVAL") pending++;
+          if (data.status === "MATCH_APPROVED") approved++;
         });
 
         setStats({

@@ -20,7 +20,7 @@ export async function POST(request: Request) {
 
     const userData = userSnap.data();
 
-    if (userData.state !== 'PAYMENT_PENDING_APPROVAL') {
+    if (userData.status !== 'PAYMENT_PENDING_APPROVAL') {
       return NextResponse.json({ error: 'User is not pending approval' }, { status: 400 });
     }
 
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     // Send the contact info via WhatsApp
     const contactMessage = `✅ Payment Approved!\n\nHere are the contact details for your match:\n\nName: ${matchData.profileData?.name || 'Not provided'}\nPhone Number: +${matchedUserId}\n\nWe wish you the best of luck! (ඔබට සුභ පතනවා!)`;
     
-    userData.state = 'MATCH_APPROVED';
+    userData.status = 'MATCH_APPROVED';
     userData.chatHistory += `\nBot: ${contactMessage}`;
     await setDoc(userRef, userData, { merge: true });
 

@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     await sendWhatsAppMessage(userId, selectReply);
     
     // Update user state and store these as current matches
-    userData.state = 'MATCHES_SENT';
+    userData.status = 'MATCHES_SENT';
     userData.currentMatches = matches; // Store them so messageProcessor can validate selection
     
     await setDoc(userRef, userData, { merge: true });

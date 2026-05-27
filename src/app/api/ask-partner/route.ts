@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     const partnerData = partnerSnap.data();
 
     // Ensure User A is actually waiting for a partner approval
-    if (userData.state !== 'AWAITING_PARTNER_APPROVAL' || userData.selectedMatchId !== partnerId) {
+    if (userData.status !== 'AWAITING_PARTNER_APPROVAL' || userData.selectedMatchId !== partnerId) {
       return NextResponse.json({ error: 'User is not awaiting approval for this partner' }, { status: 400 });
     }
 

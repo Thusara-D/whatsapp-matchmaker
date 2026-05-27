@@ -33,7 +33,7 @@ export default function AnalyticsPage() {
         allUsersSnap.forEach((doc) => {
           totalUsersCount++;
           const data = doc.data();
-          if (data.state === "MATCH_APPROVED") {
+          if (data.status === "MATCH_APPROVED") {
             paidUsersCount++;
             // Create a mock transaction record based on the user data since we don't have a separate transactions collection yet
             transactions.push({
