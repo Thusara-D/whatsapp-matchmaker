@@ -135,12 +135,14 @@ export async function processIncomingMessage(
                  }
              }
              
-             updatedDoc.profileData.hasUploadedTwoPhotos = true;
-             updatedDoc.profileData.photos = updatedDoc.uploadedPhotos;
-             updatedDoc.status = "COMPLETE";
-             
-             await setDoc(userRef, updatedDoc, { merge: true });
-             console.log("Successfully updated state to COMPLETE in DB!");
+             await setDoc(userRef, {
+                 profileData: {
+                     hasUploadedTwoPhotos: true,
+                     photos: updatedDoc.uploadedPhotos
+                 },
+                 status: "COMPLETE"
+             }, { merge: true });
+             console.log("Successfully updated status to COMPLETE in DB!");
              return;
           }
        }
