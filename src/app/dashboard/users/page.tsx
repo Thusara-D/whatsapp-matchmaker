@@ -270,7 +270,7 @@ export default function UsersPage() {
                           </button>
                         )}
 
-                        {user.profileData?.isComplete && user.status !== 'AWAITING_PARTNER_APPROVAL' && (
+                        {user.status === 'COMPLETE' && (
                           <button
                             onClick={() => router.push(`/dashboard/matches?userId=${user.id}`)}
                             className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-rose-400 to-pink-500 hover:from-rose-500 hover:to-pink-600 text-white text-sm font-bold rounded-xl transition-all shadow-[0_0_15px_rgba(244,63,94,0.4)] hover:shadow-[0_0_20px_rgba(244,63,94,0.6)] hover:scale-105 active:scale-95"
