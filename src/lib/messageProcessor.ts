@@ -1,6 +1,6 @@
 import { processMessageWithGemini } from '@/lib/gemini';
 import { db } from '@/lib/firebase';
-import { doc, getDoc, setDoc, arrayUnion } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, arrayUnion, deleteField } from 'firebase/firestore';
 import { sendWhatsAppMessage } from '@/lib/whatsapp';
 
 export async function processIncomingMessage(
@@ -135,13 +135,12 @@ export async function processIncomingMessage(
                  }
              }
              
-             await setDoc(userRef, {
-                 profileData: {
-                     hasUploadedTwoPhotos: true,
-                     photos: updatedDoc.uploadedPhotos
-                 },
-                 status: "COMPLETE"
-             }, { merge: true });
+             await updateDoc(userRef, {
+                 "profileData.hasUploadedTwoPhotos": true,
+                 "profileData.photos": updatedDoc.uploadedPhotos,
+                 status: "COMPLETE",
+                 state: deleteField()
+             });
              console.log("Successfully updated status to COMPLETE in DB!");
              return;
           }
