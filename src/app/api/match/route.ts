@@ -27,14 +27,14 @@ export async function GET(request: Request) {
     const userData = userSnap.data();
     const userProfile = userData.profileData;
 
-    if (!userProfile || !userProfile.isComplete) {
+    if (!userProfile || userData.status !== 'COMPLETE') {
       return NextResponse.json({ error: 'User profile is incomplete' }, { status: 400 });
     }
 
     // 2. Fetch Candidates
     const targetGender = userProfile.lookingForGender || (userProfile.gender === 'boy' ? 'girl' : 'boy');
     const usersRef = collection(db, 'users');
-    const q = query(usersRef, where("profileData.gender", "==", targetGender), where("profileData.isComplete", "==", true));
+    const q = query(usersRef, where("profileData.gender", "==", targetGender), where("status", "==", "COMPLETE"));
     const querySnapshot = await getDocs(q);
     
     const candidates: any[] = [];
