@@ -209,7 +209,10 @@ export default function UsersPage() {
                     <td className="px-8 py-5 font-bold text-gray-800 dark:text-gray-200">{cleanPhoneNumber(user.id)}</td>
                     <td className="px-8 py-5 font-medium text-gray-600 dark:text-gray-400">{user.profileData?.name || "N/A"}</td>
                     <td className="px-8 py-5 font-medium text-gray-600 dark:text-gray-400 capitalize">
-                      {user.profileData?.gender || "N/A"} {user.profileData?.age ? `(${user.profileData.age})` : ""}
+                      {user.profileData?.gender?.toLowerCase() === 'boy' ? 'Male' : 
+                       user.profileData?.gender?.toLowerCase() === 'girl' ? 'Female' : 
+                       user.profileData?.gender || "N/A"} 
+                      {user.profileData?.age ? ` (${user.profileData.age})` : ""}
                     </td>
                     <td className="px-8 py-5 font-medium text-gray-600 dark:text-gray-400">{user.profileData?.district || "N/A"}</td>
                     <td className="px-8 py-5">
