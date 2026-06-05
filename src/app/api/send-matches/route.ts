@@ -57,7 +57,7 @@ export async function POST(request: Request) {
     } else if (matches.length === 2) {
       selectReply = "Oya thora ganna partner anuva SELECT 1 ho SELECT 2 kiyala reply karanna.";
     } else {
-      selectReply = "Oya thora ganna partner anuva SELECT 1, SELECT 2 ho SELECT 3 kiyala reply karanna.";
+      selectReply = "Oya thora ganna partner anuva SELECT 1 ho SELECT 2 ho SELECT 3 kiyala reply karanna.";
     }
 
     userData.chatHistory += `\nBot: ${selectReply}`;
