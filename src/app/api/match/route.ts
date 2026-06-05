@@ -34,14 +34,18 @@ export async function GET(request: Request) {
     // 2. Fetch Candidates
     const targetGender = userProfile.lookingForGender || (userProfile.gender === 'boy' ? 'girl' : 'boy');
     const usersRef = collection(db, 'users');
-    const q = query(usersRef, where("profileData.gender", "==", targetGender), where("status", "==", "COMPLETE"));
+    const q = query(usersRef, where("status", "==", "COMPLETE"));
     const querySnapshot = await getDocs(q);
     
     const candidates: any[] = [];
     querySnapshot.forEach((doc) => {
-      // Don't match with themselves and don't match with already shown candidates
-      if (doc.id !== userId && !excludeIds.includes(doc.id)) {
-        candidates.push({ id: doc.id, ...doc.data().profileData });
+      const data = doc.data();
+      // Filter by gender in-memory to avoid Firebase composite index requirement
+      if (data.profileData && data.profileData.gender === targetGender) {
+        // Don't match with themselves and don't match with already shown candidates
+        if (doc.id !== userId && !excludeIds.includes(doc.id)) {
+          candidates.push({ id: doc.id, ...data.profileData });
+        }
       }
     });
 
