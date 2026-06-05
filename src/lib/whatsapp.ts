@@ -14,3 +14,15 @@ export async function sendWhatsAppMessage(to: string, text: string) {
         console.error("IPC send error (is the bot running?):", error);
     }
 }
+
+export async function sendWhatsAppImage(to: string, imagePath: string) {
+    try {
+        await fetch('http://localhost:3001/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ to, imagePath })
+        });
+    } catch (error) {
+        console.error("IPC send image error:", error);
+    }
+}

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { sendWhatsAppMessage } from '@/lib/whatsapp';
+import { sendWhatsAppMessage, sendWhatsAppImage } from '@/lib/whatsapp';
 import { formatMatchMessage } from '@/lib/matching';
 
 export async function POST(request: Request) {
@@ -28,16 +28,38 @@ export async function POST(request: Request) {
     userData.chatHistory += `\nBot: ${introMsg}`;
     await sendWhatsAppMessage(userId, introMsg);
     
-    // Send each match details (without name and phone number)
+    // Send each match details
     for (let i = 0; i < matches.length; i++) {
-      // Create a copy without name/phone if they exist
-      const secureMatch = { ...matches[i], name: undefined, phoneId: undefined };
+      const match = matches[i];
+      
+      // 1. Send photos first (up to 2)
+      if (match.photos && Array.isArray(match.photos)) {
+        const photosToSend = match.photos.slice(0, 2);
+        for (const photoUrl of photosToSend) {
+          // photoUrl is typically like "/uploads/filename.jpg"
+          // In the IPC, we pass it as imagePath which expects a relative path inside 'public' folder
+          // So if it starts with '/', we can just pass it (path.join works fine) or strip it
+          await sendWhatsAppImage(userId, photoUrl);
+        }
+      }
+
+      // 2. Send details (without name and phone number)
+      const secureMatch = { ...match, name: undefined, phoneId: undefined };
       const matchMsg = formatMatchMessage(secureMatch, i);
       userData.chatHistory += `\nBot: ${matchMsg}`;
       await sendWhatsAppMessage(userId, matchMsg);
     }
     
-    const selectReply = "Reply with SELECT 1, SELECT 2, or SELECT 3 to choose your partner and unlock their contact details! (කරුණාකර ඔබගේ තේරීම SELECT 1, SELECT 2 හෝ SELECT 3 ලෙස අප වෙත එවන්න!)";
+    // Dynamic Singlish footer
+    let selectReply = "";
+    if (matches.length === 1) {
+      selectReply = "Oya me match ekata kamathi nam SELECT 1 kiyala reply karanna.";
+    } else if (matches.length === 2) {
+      selectReply = "Oya thora ganna partner anuva SELECT 1 ho SELECT 2 kiyala reply karanna.";
+    } else {
+      selectReply = "Oya thora ganna partner anuva SELECT 1, SELECT 2 ho SELECT 3 kiyala reply karanna.";
+    }
+
     userData.chatHistory += `\nBot: ${selectReply}`;
     await sendWhatsAppMessage(userId, selectReply);
     

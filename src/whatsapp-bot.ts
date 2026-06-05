@@ -108,8 +108,14 @@ async function connectToWhatsApp() {
             req.on('data', chunk => { body += chunk.toString(); });
             req.on('end', async () => {
                 try {
-                    const { to, text } = JSON.parse(body);
-                    await sock.sendMessage(to, { text });
+                    const { to, text, imagePath } = JSON.parse(body);
+                    if (imagePath) {
+                        const path = await import('path');
+                        const fullPath = path.join(process.cwd(), 'public', imagePath);
+                        await sock.sendMessage(to, { image: { url: fullPath } });
+                    } else if (text) {
+                        await sock.sendMessage(to, { text });
+                    }
                     res.writeHead(200);
                     res.end('OK');
                 } catch (e: any) {
