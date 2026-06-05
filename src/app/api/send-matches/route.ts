@@ -67,6 +67,10 @@ export async function POST(request: Request) {
     userData.status = 'MATCHES_SENT';
     userData.currentMatches = matches; // Store them so messageProcessor can validate selection
     
+    // Append sent candidates to sentMatches to prevent re-matching
+    const matchIds = matches.map((m: any) => m.id);
+    userData.sentMatches = [...(userData.sentMatches || []), ...matchIds];
+    
     await setDoc(userRef, userData, { merge: true });
 
     return NextResponse.json({ success: true });

@@ -31,7 +31,10 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'User profile is incomplete' }, { status: 400 });
     }
 
-    // 2. Fetch Candidates
+    // Combine explicit UI exclusions with the user's historical sentMatches
+    const dbSentMatches = userData.sentMatches || [];
+    const combinedExcludeIds = Array.from(new Set(excludeIds.concat(dbSentMatches)));
+
     const targetGender = userProfile.lookingForGender || (userProfile.gender === 'boy' ? 'girl' : 'boy');
     const usersRef = collection(db, 'users');
     const q = query(usersRef, where("status", "==", "COMPLETE"));
@@ -42,8 +45,8 @@ export async function GET(request: Request) {
       const data = doc.data();
       // Filter by gender in-memory to avoid Firebase composite index requirement
       if (data.profileData && data.profileData.gender === targetGender) {
-        // Don't match with themselves and don't match with already shown candidates
-        if (doc.id !== userId && !excludeIds.includes(doc.id)) {
+        // Don't match with themselves and don't match with already shown/sent candidates
+        if (doc.id !== userId && !combinedExcludeIds.includes(doc.id)) {
           candidates.push({ id: doc.id, ...data.profileData });
         }
       }
