@@ -204,8 +204,14 @@ export default function UsersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/40 dark:divide-slate-800/50">
-                {filteredUsers.map((user) => (
-                  <tr key={user.id} className={`transition-colors duration-200 ${user.status !== 'ONBOARDING' ? 'bg-emerald-500/10 dark:bg-emerald-500/5 hover:bg-emerald-500/15' : 'hover:bg-white/60 dark:hover:bg-slate-800/60'}`}>
+                {filteredUsers.map((user) => {
+                  const isComplete = 
+                    ['COMPLETE', 'MATCHES_SENT', 'AWAITING_PARTNER_APPROVAL', 'PAYMENT_PENDING'].includes(user.status) || 
+                    (user.profileData?.isComplete && (user.profileData?.hasUploadedTwoPhotos || (user.uploadedPhotos && user.uploadedPhotos.length >= 2))) ||
+                    (user.status && user.status !== 'ONBOARDING' && user.status !== 'WAITING_FOR_ADMIN');
+
+                  return (
+                  <tr key={user.id} className={`transition-colors duration-200 ${isComplete ? 'bg-emerald-500/15 dark:bg-emerald-500/20 hover:bg-emerald-500/25 dark:hover:bg-emerald-500/30' : 'hover:bg-white/60 dark:hover:bg-slate-800/60'}`}>
                     <td className="px-8 py-5 font-bold text-gray-800 dark:text-gray-200">{cleanPhoneNumber(user.id)}</td>
                     <td className="px-8 py-5 font-medium text-gray-600 dark:text-gray-400">{user.profileData?.name || "N/A"}</td>
                     <td className="px-8 py-5 font-medium text-gray-600 dark:text-gray-400 capitalize">
@@ -287,7 +293,8 @@ export default function UsersPage() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
