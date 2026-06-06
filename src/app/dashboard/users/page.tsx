@@ -200,7 +200,6 @@ export default function UsersPage() {
                   <th className="px-8 py-5 font-bold">Gender & Age</th>
                   <th className="px-8 py-5 font-bold">District</th>
                   <th className="px-8 py-5 font-bold">Status</th>
-                  <th className="px-8 py-5 font-bold">Session</th>
                   <th className="px-8 py-5 font-bold text-right">Actions</th>
                 </tr>
               </thead>
@@ -216,19 +215,6 @@ export default function UsersPage() {
                       {user.profileData?.age ? ` (${user.profileData.age})` : ""}
                     </td>
                     <td className="px-8 py-5 font-medium text-gray-600 dark:text-gray-400">{user.profileData?.district || "N/A"}</td>
-                    <td className="px-8 py-5">
-                      {user.status !== 'ONBOARDING' ? (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.2)] transition-colors">
-                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_#10b981]"></div>
-                          Complete
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.2)] transition-colors">
-                          <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_5px_#f59e0b] animate-pulse"></div>
-                          Onboarding
-                        </span>
-                      )}
-                    </td>
                     <td className="px-8 py-5">
                       {user.status === 'MATCHES_SENT' ? (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-cyan-100 dark:bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 border border-cyan-200 dark:border-cyan-500/30 shadow-[0_0_15px_rgba(6,182,212,0.2)] transition-colors">
@@ -246,7 +232,7 @@ export default function UsersPage() {
                           Payment Pending
                         </span>
                       ) : (
-                        <span className="text-gray-400 dark:text-gray-600 font-medium">-</span>
+                        <span className="text-gray-400 dark:text-gray-600 font-bold">-</span>
                       )}
                     </td>
                     <td className="px-8 py-5 text-right">
