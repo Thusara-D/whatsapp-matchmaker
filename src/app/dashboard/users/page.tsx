@@ -236,10 +236,10 @@ export default function UsersPage() {
                           <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
                           Wait Partner
                         </span>
-                      ) : user.status === 'PAYMENT_PENDING' ? (
+                      ) : ['PAYMENT_PENDING', 'AWAITING_PAYMENT_RECEIPT', 'PAYMENT_PENDING_APPROVAL'].includes(user.status) ? (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.2)] transition-colors">
                           <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shadow-[0_0_5px_#a855f7] animate-pulse"></div>
-                          Payment Pending
+                          {user.status === 'PAYMENT_PENDING_APPROVAL' ? 'Verifying Payment' : 'Payment Pending'}
                         </span>
                       ) : (
                         <span className="text-gray-400 dark:text-gray-600 font-bold">-</span>
