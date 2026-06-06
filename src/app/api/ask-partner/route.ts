@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { sendWhatsAppMessage } from '@/lib/whatsapp';
+import { sendWhatsAppMessage, sendWhatsAppImage } from '@/lib/whatsapp';
 
 export async function POST(request: Request) {
   try {
@@ -29,19 +29,41 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'User is not awaiting approval for this partner' }, { status: 400 });
     }
 
-    const p = userData.profileData;
-    const age = p.age || 'Unknown';
-    const job = p.job || 'Unknown';
-    const district = p.district || 'Unknown';
+    const p = userData.profileData || {};
     
-    // Construct the pitch message
-    const pitchMessage = `සුබ දවසක්! 😊\n\nඔබගේ විස්තර වලට ගැළපෙන ${age} හැවිරිදි, ${district} ප්‍රදේශයේ පදිංචි ${job} ක් වන අයෙක් ඔබගේ profile එකට කැමැත්ත පළකර ඇත.\n\nඔබත් මෙම යෝජනාවට කැමති නම් "YES" ලෙසත්, අකමැති නම් "NO" ලෙසත් reply කරන්න.`;
+    // 1. Send photos first (up to 2)
+    const photos = p.photos || userData.uploadedPhotos || [];
+    if (Array.isArray(photos)) {
+      const photosToSend = photos.slice(0, 2);
+      for (const photoUrl of photosToSend) {
+        await sendWhatsAppImage(partnerId, photoUrl);
+      }
+    }
 
-    // Send WhatsApp Message to Sanduni
+    // 2. Construct the detailed pitch message
+    const pitchMessage = `සුබ දවසක්! 😊
+
+ඔබගේ විස්තර වලට ගැළපෙන කෙනෙක් ඔබගේ profile එකට කැමැත්ත පළකර ඇත. 
+
+මේ තියෙන්නේ එයාගේ විස්තර:
+- වයස (Age): ${p.age || 'N/A'}
+- ගම / ප්‍රදේශය (Village/District): ${[p.village, p.district].filter(Boolean).join(', ') || 'N/A'}
+- රැකියාව (Job): ${p.job || 'N/A'}
+- අධ්‍යාපන සුදුසුකම් (Education): ${p.education || 'N/A'}
+- උස (Height): ${p.height || 'N/A'}
+- බර (Weight): ${p.weight || 'N/A'}
+- සමේ වර්ණය (Skin Color): ${p.skinColor || 'N/A'}
+- විවාහක/අවිවාහක (Marital Status): ${p.maritalStatus || 'N/A'}
+- සහකරුවෙකුගෙන් බලාපොරොත්තු (Preferences): ${p.partnerPreferences || 'N/A'}
+- අමතර විස්තර (Other): ${p.additionalDetails || 'N/A'}
+
+Oya mee meyata kamathi nam YES kiyala, akamathi nam NO kiyala reply karanna.`;
+
+    // Send WhatsApp Text Message to Sanduni
     await sendWhatsAppMessage(partnerId, pitchMessage);
     
     // Add to Sanduni's chat history
-    partnerData.chatHistory += `\nBot: ${pitchMessage}`;
+    partnerData.chatHistory += `\nBot: [Sent Photos]\nBot: ${pitchMessage}`;
     
     // Set pendingPitch on Sanduni
     partnerData.pendingPitch = {
