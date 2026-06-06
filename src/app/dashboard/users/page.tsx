@@ -200,12 +200,13 @@ export default function UsersPage() {
                   <th className="px-8 py-5 font-bold">Gender & Age</th>
                   <th className="px-8 py-5 font-bold">District</th>
                   <th className="px-8 py-5 font-bold">Status</th>
+                  <th className="px-8 py-5 font-bold">Session</th>
                   <th className="px-8 py-5 font-bold text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/40 dark:divide-slate-800/50">
                 {filteredUsers.map((user) => (
-                  <tr key={user.id} className={`transition-colors duration-200 ${user.status === 'COMPLETE' ? 'bg-emerald-500/10 dark:bg-emerald-500/5 hover:bg-emerald-500/15' : 'hover:bg-white/60 dark:hover:bg-slate-800/60'}`}>
+                  <tr key={user.id} className={`transition-colors duration-200 ${user.status !== 'ONBOARDING' ? 'bg-emerald-500/10 dark:bg-emerald-500/5 hover:bg-emerald-500/15' : 'hover:bg-white/60 dark:hover:bg-slate-800/60'}`}>
                     <td className="px-8 py-5 font-bold text-gray-800 dark:text-gray-200">{cleanPhoneNumber(user.id)}</td>
                     <td className="px-8 py-5 font-medium text-gray-600 dark:text-gray-400">{user.profileData?.name || "N/A"}</td>
                     <td className="px-8 py-5 font-medium text-gray-600 dark:text-gray-400 capitalize">
@@ -216,22 +217,7 @@ export default function UsersPage() {
                     </td>
                     <td className="px-8 py-5 font-medium text-gray-600 dark:text-gray-400">{user.profileData?.district || "N/A"}</td>
                     <td className="px-8 py-5">
-                      {user.status === 'AWAITING_PARTNER_APPROVAL' ? (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30 transition-colors">
-                          <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
-                          Wait Partner
-                        </span>
-                      ) : user.status === 'PAYMENT_PENDING' ? (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.2)] transition-colors">
-                          <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shadow-[0_0_5px_#a855f7] animate-pulse"></div>
-                          Payment Pending
-                        </span>
-                      ) : user.status === 'MATCHES_SENT' ? (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-cyan-100 dark:bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 border border-cyan-200 dark:border-cyan-500/30 shadow-[0_0_15px_rgba(6,182,212,0.2)] transition-colors">
-                          <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 shadow-[0_0_5px_#06b6d4] animate-pulse"></div>
-                          Pending Reply
-                        </span>
-                      ) : user.status === 'COMPLETE' ? (
+                      {user.status !== 'ONBOARDING' ? (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.2)] transition-colors">
                           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_#10b981]"></div>
                           Complete
@@ -241,6 +227,26 @@ export default function UsersPage() {
                           <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_5px_#f59e0b] animate-pulse"></div>
                           Onboarding
                         </span>
+                      )}
+                    </td>
+                    <td className="px-8 py-5">
+                      {user.status === 'MATCHES_SENT' ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-cyan-100 dark:bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 border border-cyan-200 dark:border-cyan-500/30 shadow-[0_0_15px_rgba(6,182,212,0.2)] transition-colors">
+                          <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 shadow-[0_0_5px_#06b6d4] animate-pulse"></div>
+                          Pending Reply
+                        </span>
+                      ) : user.status === 'AWAITING_PARTNER_APPROVAL' ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30 transition-colors">
+                          <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
+                          Wait Partner
+                        </span>
+                      ) : user.status === 'PAYMENT_PENDING' ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.2)] transition-colors">
+                          <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shadow-[0_0_5px_#a855f7] animate-pulse"></div>
+                          Payment Pending
+                        </span>
+                      ) : (
+                        <span className="text-gray-400 dark:text-gray-600 font-medium">-</span>
                       )}
                     </td>
                     <td className="px-8 py-5 text-right">
