@@ -57,7 +57,7 @@ export async function POST(request: Request) {
 - සහකරුවෙකුගෙන් බලාපොරොත්තු (Preferences): ${p.partnerPreferences || 'N/A'}
 - අමතර විස්තර (Other): ${p.additionalDetails || 'N/A'}
 
-Oya mee meyata kamathi nam YES kiyala, akamathi nam NO kiyala reply karanna.`;
+Oya meyata kamathi nam YES kiyala, akamathi nam NO kiyala reply karanna.`;
 
     // Send WhatsApp Text Message to Sanduni
     await sendWhatsAppMessage(partnerId, pitchMessage);
