@@ -231,6 +231,11 @@ export default function UsersPage() {
                           <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shadow-[0_0_5px_#a855f7] animate-pulse"></div>
                           Payment Pending
                         </span>
+                      ) : user.status === 'MATCHES_SENT' ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.2)] transition-colors">
+                          <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_5px_#3b82f6]"></div>
+                          Matches Sent
+                        </span>
                       ) : (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.2)] transition-colors">
                           <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_5px_#f59e0b] animate-pulse"></div>
@@ -278,7 +283,7 @@ export default function UsersPage() {
                           </button>
                         )}
 
-                        {user.status === 'COMPLETE' && (
+                        {(user.status === 'COMPLETE' || user.status === 'MATCHES_SENT') && (
                           <button
                             onClick={() => router.push(`/dashboard/matches?userId=${user.id}`)}
                             className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-rose-400 to-pink-500 hover:from-rose-500 hover:to-pink-600 text-white text-sm font-bold rounded-xl transition-all shadow-[0_0_15px_rgba(244,63,94,0.4)] hover:shadow-[0_0_20px_rgba(244,63,94,0.6)] hover:scale-105 active:scale-95"
