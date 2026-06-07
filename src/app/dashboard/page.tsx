@@ -1,84 +1,79 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import { Users, CheckCircle, Clock, CreditCard } from "lucide-react";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { Users, Heart, CreditCard, Settings, Home, TrendingUp } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
-export default function DashboardOverview() {
-  const [stats, setStats] = useState({
-    totalUsers: 0,
-    completeProfiles: 0,
-    pendingPayments: 0,
-    approvedMatches: 0
-  });
-
-  useEffect(() => {
-    async function fetchStats() {
-      try {
-        const usersRef = collection(db, "users");
-        const snap = await getDocs(usersRef);
-        
-        let total = 0;
-        let complete = 0;
-        let pending = 0;
-        let approved = 0;
-
-        snap.forEach((doc) => {
-          total++;
-          const data = doc.data();
-          if (data.profileData?.isComplete) complete++;
-          if (data.status === "PAYMENT_PENDING_APPROVAL") pending++;
-          if (data.status === "MATCH_APPROVED") approved++;
-        });
-
-        setStats({
-          totalUsers: total,
-          completeProfiles: complete,
-          pendingPayments: pending,
-          approvedMatches: approved
-        });
-      } catch (error) {
-        console.error("Failed to fetch stats", error);
-      }
-    }
-    
-    fetchStats();
-  }, []);
-
-  const statCards = [
-    { title: "Total Users", value: stats.totalUsers, icon: Users, color: "text-blue-500", bg: "bg-blue-100/50 dark:bg-blue-900/20", border: "border-blue-500/30", glow: "hover:shadow-[0_0_30px_rgba(59,130,246,0.2)] dark:hover:shadow-[0_0_30px_rgba(59,130,246,0.3)]" },
-    { title: "Complete Profiles", value: stats.completeProfiles, icon: CheckCircle, color: "text-emerald-500", bg: "bg-emerald-100/50 dark:bg-emerald-900/20", border: "border-emerald-500/30", glow: "hover:shadow-[0_0_30px_rgba(16,185,129,0.2)] dark:hover:shadow-[0_0_30px_rgba(16,185,129,0.3)]" },
-    { title: "Pending Payments", value: stats.pendingPayments, icon: Clock, color: "text-amber-500", bg: "bg-amber-100/50 dark:bg-amber-900/20", border: "border-amber-500/30", glow: "hover:shadow-[0_0_30px_rgba(245,158,11,0.2)] dark:hover:shadow-[0_0_30px_rgba(245,158,11,0.3)]" },
-    { title: "Approved Matches", value: stats.approvedMatches, icon: CreditCard, color: "text-rose-500", bg: "bg-rose-100/50 dark:bg-rose-900/20", border: "border-rose-500/30", glow: "hover:shadow-[0_0_30px_rgba(244,63,94,0.2)] dark:hover:shadow-[0_0_30px_rgba(244,63,94,0.3)]" },
+export default function WelcomeHub() {
+  const cards = [
+    { name: "Overview", href: "/dashboard/overview", icon: Home, color: "text-blue-500", glow: "shadow-[0_0_15px_rgba(59,130,246,0.3)]", bg: "bg-blue-500/10" },
+    { name: "Users", href: "/dashboard/users", icon: Users, color: "text-emerald-500", glow: "shadow-[0_0_15px_rgba(16,185,129,0.3)]", bg: "bg-emerald-500/10" },
+    { name: "Matches", href: "/dashboard/matches", icon: Heart, color: "text-rose-500", glow: "shadow-[0_0_15px_rgba(244,63,94,0.3)]", bg: "bg-rose-500/10" },
+    { name: "Payments", href: "/dashboard/payments", icon: CreditCard, color: "text-purple-500", glow: "shadow-[0_0_15px_rgba(168,85,247,0.3)]", bg: "bg-purple-500/10" },
+    { name: "Analytics", href: "/dashboard/analytics", icon: TrendingUp, color: "text-amber-500", glow: "shadow-[0_0_15px_rgba(245,158,11,0.3)]", bg: "bg-amber-500/10" },
+    { name: "Settings", href: "/dashboard/settings", icon: Settings, color: "text-gray-500", glow: "shadow-[0_0_15px_rgba(107,114,128,0.3)]", bg: "bg-gray-500/10" },
   ];
 
   return (
-    <div className="animate-in slide-in-from-bottom-4 duration-700 ease-out">
-      <div className="mb-10 px-2">
-        <h2 className="text-3xl font-extrabold text-gray-800 dark:text-gray-100 tracking-tight transition-colors">Overview</h2>
-        <p className="text-gray-500 dark:text-gray-400 text-sm mt-2 font-medium transition-colors">Your business performance at a glance.</p>
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] relative w-full h-full max-w-5xl mx-auto px-4 py-8">
+      
+      {/* Top Right Utilities */}
+      <div className="absolute top-4 right-4 z-50">
+        <ThemeToggle />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-2">
-        {statCards.map((stat, idx) => {
-          const Icon = stat.icon;
-          return (
-            <div key={idx} className={`bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border ${stat.border} transform transition-all hover:scale-105 ${stat.glow} duration-300 relative overflow-hidden group`}>
-              <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              <div className="flex items-center justify-between mb-4 relative z-10">
-                <div className={`p-3.5 rounded-2xl ${stat.bg} border border-white/20 dark:border-white/10`}>
-                  <Icon className={`w-6 h-6 ${stat.color}`} />
-                </div>
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="text-center mb-16 mt-8 md:mt-0"
+      >
+        <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-tr from-rose-400 to-pink-500 rounded-3xl shadow-lg shadow-rose-500/30 dark:shadow-[0_0_30px_rgba(236,72,153,0.5)] mb-8 transform hover:scale-105 transition-transform duration-300">
+          <Heart className="w-10 h-10 text-white fill-white" />
+        </div>
+        <h1 className="text-5xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 tracking-tight mb-4">
+          Welcome Back, <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-pink-500">Admin!</span>
+        </h1>
+        <p className="text-xl text-gray-500 dark:text-gray-400 font-medium">Select a module to manage your matchmaking empire.</p>
+      </motion.div>
+
+      <motion.div 
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full"
+        initial="hidden"
+        animate="visible"
+        variants={{
+          hidden: { opacity: 0 },
+          visible: {
+            opacity: 1,
+            transition: {
+              staggerChildren: 0.1
+            }
+          }
+        }}
+      >
+        {cards.map((card) => (
+          <Link href={card.href} key={card.name} passHref>
+            <motion.div 
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                visible: { opacity: 1, y: 0 }
+              }}
+              whileHover={{ scale: 1.05, translateY: -5 }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/50 dark:border-slate-700/50 rounded-3xl p-8 flex flex-col items-center justify-center text-center cursor-pointer shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] transition-colors group relative overflow-hidden h-full"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0"></div>
+              
+              <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-6 z-10 ${card.bg} ${card.color} ${card.glow} transition-all duration-300 group-hover:shadow-xl`}>
+                <card.icon className="w-10 h-10" />
               </div>
-              <div className="relative z-10">
-                <h3 className="text-4xl font-black text-gray-800 dark:text-gray-100 transition-colors">{stat.value}</h3>
-                <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 mt-1 uppercase tracking-wider transition-colors">{stat.title}</p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+              <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-100 z-10 transition-colors">{card.name}</h3>
+            </motion.div>
+          </Link>
+        ))}
+      </motion.div>
+
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import Sidebar from "@/components/Sidebar";
+import DashboardLayoutClient from "@/components/DashboardLayoutClient";
 
 export default function DashboardLayout({
   children,
@@ -13,13 +13,9 @@ export default function DashboardLayout({
       <div className="absolute top-[40%] right-[-10%] w-[500px] h-[500px] bg-teal-200/50 dark:bg-purple-600/10 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-50 animate-blob animation-delay-2000 pointer-events-none transition-colors duration-500"></div>
       <div className="absolute bottom-[-20%] left-[20%] w-[600px] h-[600px] bg-pink-200/50 dark:bg-indigo-600/10 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-50 animate-blob animation-delay-4000 pointer-events-none transition-colors duration-500"></div>
 
-      <Sidebar />
-      
-      <div className="flex-1 flex flex-col z-10 relative min-w-0">
-        <main className="flex-1 min-w-0 overflow-x-hidden overflow-y-auto pt-6 px-4 md:px-8 pb-12">
-          {children}
-        </main>
-      </div>
+      <DashboardLayoutClient>
+        {children}
+      </DashboardLayoutClient>
     </div>
   );
 }
