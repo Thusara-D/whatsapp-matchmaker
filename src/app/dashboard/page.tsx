@@ -17,10 +17,11 @@ export default function WelcomeHub() {
   ];
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] relative w-full h-full max-w-5xl mx-auto px-4 py-8">
-      
+    <div className="relative w-full h-full min-h-screen">
       {/* Background Particles Layer */}
       <ParticleBackground />
+
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] relative w-full h-full max-w-5xl mx-auto px-4 py-8 z-10">
 
       {/* Top Right Utilities */}
       <div className="absolute top-4 right-4 z-50">
@@ -78,6 +79,7 @@ export default function WelcomeHub() {
         ))}
       </motion.div>
 
+      </div>
     </div>
   );
 }
