@@ -215,8 +215,11 @@ export default function UsersPage() {
                   );
 
                   return (
-                  <tr key={user.id} className={`transition-colors duration-200 ${isComplete ? 'bg-emerald-500/15 dark:bg-emerald-500/20 hover:bg-emerald-500/25 dark:hover:bg-emerald-500/30' : 'hover:bg-white/60 dark:hover:bg-slate-800/60'}`}>
-                    <td className="px-8 py-5 font-bold text-gray-800 dark:text-gray-200">{cleanPhoneNumber(user.id)}</td>
+                  <tr key={user.id} className={`transition-colors duration-200 ${isComplete ? 'bg-emerald-500/5 hover:bg-emerald-500/10' : 'hover:bg-white/60 dark:hover:bg-slate-800/60'}`}>
+                    <td className="px-8 py-5 font-bold text-gray-800 dark:text-gray-200 relative">
+                      {isComplete && <div className="absolute top-0 bottom-0 left-0 w-1 bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.5)]"></div>}
+                      {cleanPhoneNumber(user.id)}
+                    </td>
                     <td className="px-8 py-5 font-medium text-gray-600 dark:text-gray-400">{user.profileData?.name || "N/A"}</td>
                     <td className="px-8 py-5 font-medium text-gray-600 dark:text-gray-400 capitalize">
                       {user.profileData?.gender?.toLowerCase() === 'boy' ? 'Male' : 
