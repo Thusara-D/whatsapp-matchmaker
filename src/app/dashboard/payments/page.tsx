@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, getDocs, query, where, doc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { CheckCircle2, ShieldCheck } from "lucide-react";
+import { CheckCircle2, ShieldCheck, FileText, X, XCircle } from "lucide-react";
 
 export default function PaymentsPage() {
   const [pendingUsers, setPendingUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [approvingId, setApprovingId] = useState<string | null>(null);
+  const [selectedReceiptUrl, setSelectedReceiptUrl] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPendingPayments();
@@ -17,7 +18,7 @@ export default function PaymentsPage() {
   async function fetchPendingPayments() {
     try {
       const usersRef = collection(db, "users");
-      const q = query(usersRef, where("state", "==", "PAYMENT_PENDING_APPROVAL"));
+      const q = query(usersRef, where("status", "==", "PAYMENT_PENDING_APPROVAL"));
       const snap = await getDocs(q);
       
       const fetched: any[] = [];
@@ -58,8 +59,21 @@ export default function PaymentsPage() {
     }
   }
 
+  async function handleReject(userId: string) {
+    if (!confirm("Are you sure you want to reject this payment? The user will be moved back to AWAITING_PAYMENT_RECEIPT.")) return;
+    
+    try {
+      const userRef = doc(db, "users", userId);
+      await setDoc(userRef, { status: "AWAITING_PAYMENT_RECEIPT" }, { merge: true });
+      alert("Payment rejected.");
+      fetchPendingPayments();
+    } catch (error) {
+      alert("Failed to reject payment.");
+    }
+  }
+
   return (
-      <div className="animate-in slide-in-from-bottom-4 duration-700 ease-out px-2">
+    <div className="animate-in slide-in-from-bottom-4 duration-700 ease-out px-2">
       <div className="mb-10">
         <h2 className="text-3xl font-extrabold text-gray-800 dark:text-gray-100 tracking-tight transition-colors">Payment Approvals</h2>
         <p className="text-gray-500 dark:text-gray-400 text-sm mt-2 font-medium transition-colors">Verify bank receipts and securely unlock matches.</p>
@@ -84,7 +98,8 @@ export default function PaymentsPage() {
                   <th className="px-8 py-5 font-bold">Customer Number</th>
                   <th className="px-8 py-5 font-bold">Customer Name</th>
                   <th className="px-8 py-5 font-bold">Requested Match ID</th>
-                  <th className="px-8 py-5 font-bold text-right">Action</th>
+                  <th className="px-8 py-5 font-bold">Receipt</th>
+                  <th className="px-8 py-5 font-bold text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/40 dark:divide-slate-800/50">
@@ -93,15 +108,37 @@ export default function PaymentsPage() {
                     <td className="px-8 py-6 font-bold text-gray-800 dark:text-gray-200">+{user.id}</td>
                     <td className="px-8 py-6 font-medium text-gray-600 dark:text-gray-400">{user.profileData?.name || "Unknown"}</td>
                     <td className="px-8 py-6 font-mono text-xs text-gray-500 dark:text-gray-500">{user.selectedMatchId}</td>
+                    <td className="px-8 py-6">
+                      {user.paymentReceiptUrl ? (
+                        <button
+                          onClick={() => setSelectedReceiptUrl(user.paymentReceiptUrl)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30 rounded-xl text-xs font-bold hover:bg-blue-200 dark:hover:bg-blue-500/30 transition-all shadow-sm"
+                        >
+                          <FileText className="w-3.5 h-3.5" />
+                          View Receipt
+                        </button>
+                      ) : (
+                        <span className="text-xs text-gray-400 italic">No image saved</span>
+                      )}
+                    </td>
                     <td className="px-8 py-6 text-right">
-                      <button
-                        onClick={() => handleApprove(user.id)}
-                        disabled={approvingId === user.id}
-                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-emerald-500/30 dark:shadow-[0_0_15px_rgba(16,185,129,0.3)] disabled:opacity-50 disabled:shadow-none hover:scale-105 active:scale-95"
-                      >
-                        <ShieldCheck className="w-4 h-4" />
-                        {approvingId === user.id ? "Approving..." : "Approve & Send"}
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => handleReject(user.id)}
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-bold rounded-xl transition-all shadow-sm hover:scale-105 active:scale-95"
+                        >
+                          <XCircle className="w-4 h-4" />
+                          Reject
+                        </button>
+                        <button
+                          onClick={() => handleApprove(user.id)}
+                          disabled={approvingId === user.id}
+                          className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-emerald-500/30 dark:shadow-[0_0_15px_rgba(16,185,129,0.3)] disabled:opacity-50 disabled:shadow-none hover:scale-105 active:scale-95"
+                        >
+                          <ShieldCheck className="w-4 h-4" />
+                          {approvingId === user.id ? "Approving..." : "Approve & Send"}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -110,6 +147,31 @@ export default function PaymentsPage() {
           </div>
         )}
       </div>
+
+      {/* Lightbox Modal for Receipt */}
+      {selectedReceiptUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden max-w-2xl w-full shadow-2xl border border-white/20">
+            <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex justify-between items-center bg-gray-50/50 dark:bg-slate-800/50">
+              <h3 className="font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-blue-500" /> Bank Receipt
+              </h3>
+              <button 
+                onClick={() => setSelectedReceiptUrl(null)}
+                className="p-2 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-full transition-colors text-gray-500"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 bg-gray-100/50 dark:bg-slate-900/80 flex justify-center items-center">
+              <div className="relative rounded-2xl overflow-hidden shadow-sm border border-white/50 dark:border-slate-700 w-full max-h-[70vh] flex items-center justify-center bg-gray-200 dark:bg-slate-800">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={selectedReceiptUrl} alt="Bank Receipt" className="object-contain max-h-[70vh]" />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

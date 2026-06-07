@@ -59,7 +59,20 @@ export async function processIncomingMessage(
 
     if (base64Image) {
        if (userData.status === "AWAITING_PAYMENT_RECEIPT") {
+          const fs = await import('fs');
+          const path = await import('path');
+          const filename = `receipt_${from}_${Date.now()}.jpg`;
+          const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+          if (!fs.existsSync(uploadDir)) {
+             fs.mkdirSync(uploadDir, { recursive: true });
+          }
+          const filePath = path.join(uploadDir, filename);
+          const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, "");
+          fs.writeFileSync(filePath, base64Data, { encoding: 'base64' });
+          const photoUrl = `/uploads/${filename}`;
+
           userData.status = "PAYMENT_PENDING_APPROVAL";
+          userData.paymentReceiptUrl = photoUrl;
           await setDoc(userRef, userData, { merge: true });
           // SILENT: No reply sent
           return;
