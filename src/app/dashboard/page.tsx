@@ -21,12 +21,12 @@ export default function WelcomeHub() {
       {/* Background Particles Layer */}
       <ParticleBackground />
 
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] relative w-full h-full max-w-5xl mx-auto px-4 py-8 z-10">
-
       {/* Top Right Utilities */}
-      <div className="absolute top-4 right-4 z-50">
+      <div className="absolute top-6 right-6 z-50">
         <ThemeToggle />
       </div>
+
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] relative w-full h-full max-w-5xl mx-auto px-4 py-8 z-10">
 
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
