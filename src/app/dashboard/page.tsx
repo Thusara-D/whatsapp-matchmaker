@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Users, Heart, CreditCard, Settings, Home, TrendingUp } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import ParticleBackground from "@/components/ParticleBackground";
 
 export default function WelcomeHub() {
   const cards = [
@@ -18,6 +19,9 @@ export default function WelcomeHub() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] relative w-full h-full max-w-5xl mx-auto px-4 py-8">
       
+      {/* Background Particles Layer */}
+      <ParticleBackground />
+
       {/* Top Right Utilities */}
       <div className="absolute top-4 right-4 z-50">
         <ThemeToggle />
