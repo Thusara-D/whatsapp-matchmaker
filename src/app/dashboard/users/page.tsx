@@ -209,7 +209,7 @@ export default function UsersPage() {
                   const hasTwoPhotos = photos.length >= 2;
                   
                   const isComplete = hasTwoPhotos && (
-                    ['COMPLETE', 'MATCHES_SENT', 'AWAITING_PARTNER_APPROVAL', 'PAYMENT_PENDING', 'AWAITING_PAYMENT_RECEIPT', 'PAYMENT_PENDING_APPROVAL'].includes(user.status) || 
+                    ['COMPLETE', 'MATCHES_SENT', 'AWAITING_PARTNER_APPROVAL', 'PAYMENT_PENDING', 'AWAITING_PAYMENT_RECEIPT', 'PAYMENT_PENDING_APPROVAL', 'MATCH_APPROVED'].includes(user.status) || 
                     user.profileData?.isComplete === true ||
                     user.status === 'WAITING_FOR_ADMIN'
                   );
@@ -243,6 +243,11 @@ export default function UsersPage() {
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.2)] transition-colors">
                           <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shadow-[0_0_5px_#a855f7] animate-pulse"></div>
                           {user.status === 'PAYMENT_PENDING_APPROVAL' ? 'Verifying Payment' : 'Payment Pending'}
+                        </span>
+                      ) : user.status === 'MATCH_APPROVED' ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.2)] transition-colors">
+                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_#10b981] animate-pulse"></div>
+                          Payment Verified
                         </span>
                       ) : (
                         <span className="text-gray-400 dark:text-gray-600 font-bold">-</span>
