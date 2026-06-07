@@ -43,6 +43,7 @@ export async function POST(request: Request) {
     const contactMessage = `✅ Payment Approved!\n\nHere are the contact details for your match:\n\nName: ${matchData.profileData?.name || 'Not provided'}\nPhone Number: +${matchedUserId}\n\nWe wish you the best of luck! (ඔබට සුභ පතනවා!)`;
     
     userData.status = 'MATCH_APPROVED';
+    userData.paymentApprovedAt = new Date().toISOString();
     userData.chatHistory += `\nBot: ${contactMessage}`;
     await setDoc(userRef, userData, { merge: true });
 
