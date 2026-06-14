@@ -5,9 +5,12 @@
  */
 export async function sendWhatsAppMessage(to: string, text: string) {
     try {
-        await fetch('http://localhost:3001/send', {
+        await fetch((process.env.BOT_API_URL || 'http://localhost:3001') + '/send', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'x-api-secret': process.env.BOT_API_SECRET || ''
+            },
             body: JSON.stringify({ to, text })
         });
     } catch (error) {
@@ -15,12 +18,15 @@ export async function sendWhatsAppMessage(to: string, text: string) {
     }
 }
 
-export async function sendWhatsAppImage(to: string, imagePath: string) {
+export async function sendWhatsAppImage(to: string, imageUrl: string) {
     try {
-        await fetch('http://localhost:3001/send', {
+        await fetch((process.env.BOT_API_URL || 'http://localhost:3001') + '/send', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ to, imagePath })
+            headers: { 
+                'Content-Type': 'application/json',
+                'x-api-secret': process.env.BOT_API_SECRET || ''
+            },
+            body: JSON.stringify({ to, imageUrl })
         });
     } catch (error) {
         console.error("IPC send image error:", error);

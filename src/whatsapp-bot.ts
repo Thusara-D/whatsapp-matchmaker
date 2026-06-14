@@ -104,15 +104,27 @@ async function connectToWhatsApp() {
     const http = await import('http');
     const server = http.createServer((req, res) => {
         if (req.url === '/send' && req.method === 'POST') {
+            const apiSecret = process.env.BOT_API_SECRET;
+            if (apiSecret && req.headers['x-api-secret'] !== apiSecret) {
+                res.writeHead(401);
+                return res.end('Unauthorized');
+            }
+
             let body = '';
             req.on('data', chunk => { body += chunk.toString(); });
             req.on('end', async () => {
                 try {
-                    const { to, text, imagePath } = JSON.parse(body);
-                    if (imagePath) {
-                        const path = await import('path');
-                        const fullPath = path.join(process.cwd(), 'public', imagePath);
-                        await sock.sendMessage(to, { image: { url: fullPath } });
+                    const { to, text, imagePath, imageUrl } = JSON.parse(body);
+                    const imageTarget = imageUrl || imagePath;
+                    
+                    if (imageTarget) {
+                        if (imageTarget.startsWith('http')) {
+                            await sock.sendMessage(to, { image: { url: imageTarget } });
+                        } else {
+                            const path = await import('path');
+                            const fullPath = path.join(process.cwd(), 'public', imageTarget);
+                            await sock.sendMessage(to, { image: { url: fullPath } });
+                        }
                     } else if (text) {
                         await sock.sendMessage(to, { text });
                     }
@@ -128,8 +140,9 @@ async function connectToWhatsApp() {
             res.end();
         }
     });
-    server.listen(3001, () => {
-        console.log('\n[IPC] Local server listening on port 3001 for Next.js requests.');
+    const PORT = process.env.PORT || 3001;
+    server.listen(PORT, () => {
+        console.log(`\n[IPC] Local server listening on port ${PORT} for Next.js requests.`);
     });
 }
 
