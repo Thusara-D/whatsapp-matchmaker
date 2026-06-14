@@ -201,6 +201,7 @@ export default function UsersPage() {
                   <th className="px-8 py-5 font-bold">District</th>
                   <th className="px-8 py-5 font-bold">Status</th>
                   <th className="px-8 py-5 font-bold text-right">Actions</th>
+                  <th className="px-8 py-5 font-bold text-right">Match</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/40 dark:divide-slate-800/50">
@@ -283,25 +284,26 @@ export default function UsersPage() {
                            <User className="w-4 h-4 text-emerald-500" />
                            Details
                          </button>
-
-                        {user.status === 'AWAITING_PARTNER_APPROVAL' && user.selectedMatchId && (
+                      </div>
+                    </td>
+                    <td className="px-8 py-5 text-right w-32">
+                      <div className="flex items-center justify-end">
+                        {user.status === 'AWAITING_PARTNER_APPROVAL' && user.selectedMatchId ? (
                           <button
                             onClick={() => handleAskPartner(user.id, user.selectedMatchId)}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white text-sm font-bold rounded-xl transition-all shadow-md active:scale-95"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white text-sm font-bold rounded-xl transition-all shadow-md active:scale-95 whitespace-nowrap"
                           >
                             Ask Partner
                           </button>
-                        )}
-
-                        {(user.status === 'COMPLETE' || user.status === 'MATCHES_SENT') && (
+                        ) : (user.status === 'COMPLETE' || user.status === 'MATCHES_SENT') ? (
                           <button
                             onClick={() => router.push(`/dashboard/matches?userId=${user.id}`)}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-rose-400 to-pink-500 hover:from-rose-500 hover:to-pink-600 text-white text-sm font-bold rounded-xl transition-all shadow-[0_0_15px_rgba(244,63,94,0.4)] hover:shadow-[0_0_20px_rgba(244,63,94,0.6)] hover:scale-105 active:scale-95"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-rose-400 to-pink-500 hover:from-rose-500 hover:to-pink-600 text-white text-sm font-bold rounded-xl transition-all shadow-[0_0_15px_rgba(244,63,94,0.4)] hover:shadow-[0_0_20px_rgba(244,63,94,0.6)] hover:scale-105 active:scale-95 whitespace-nowrap"
                           >
                             <Heart className="w-4 h-4 fill-white/20" />
                             Match
                           </button>
-                        )}
+                        ) : null}
                       </div>
                     </td>
                   </tr>
