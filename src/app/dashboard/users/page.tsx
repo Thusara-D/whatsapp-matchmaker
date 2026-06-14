@@ -191,17 +191,16 @@ export default function UsersPage() {
             <p className="text-gray-500 dark:text-gray-400 text-sm mt-2 transition-colors">Try adjusting your filters.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto rounded-xl border border-slate-800 overflow-hidden">
             <table className="w-full text-sm text-left border-collapse">
-              <thead className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider bg-white/40 dark:bg-slate-800/40 border-b border-white/50 dark:border-slate-700/50 transition-colors">
+              <thead className="text-slate-400 text-xs font-semibold uppercase tracking-wider bg-white/40 dark:bg-slate-800/40 border-b border-slate-800 transition-colors">
                 <tr>
-                  <th className="px-8 py-5 font-bold">Phone Number</th>
-                  <th className="px-8 py-5 font-bold">Name</th>
-                  <th className="px-8 py-5 font-bold">Gender & Age</th>
-                  <th className="px-8 py-5 font-bold">District</th>
-                  <th className="px-8 py-5 font-bold">Status</th>
-                  <th className="px-8 py-5 font-bold text-center">Actions</th>
-                  <th className="px-8 py-5 font-bold text-center">Match</th>
+                  <th className="px-8 py-5">Client</th>
+                  <th className="px-8 py-5">Gender & Age</th>
+                  <th className="px-8 py-5">District</th>
+                  <th className="px-8 py-5">Status</th>
+                  <th className="px-8 py-5 text-center">Actions</th>
+                  <th className="px-8 py-5 text-center">Match</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/40 dark:divide-slate-800/50">
@@ -216,12 +215,14 @@ export default function UsersPage() {
                   );
 
                   return (
-                  <tr key={user.id} className={`transition-colors duration-200 ${isComplete ? 'bg-emerald-500/5 hover:bg-emerald-500/10' : 'hover:bg-white/60 dark:hover:bg-slate-800/60'}`}>
-                    <td className="px-8 py-5 font-bold text-gray-800 dark:text-gray-200 relative">
+                  <tr key={user.id} className={`transition-colors duration-200 ${isComplete ? 'bg-emerald-500/5' : ''} hover:bg-slate-800/30`}>
+                    <td className="px-8 py-5 relative">
                       {isComplete && <div className="absolute top-0 bottom-0 left-0 w-1 bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.5)]"></div>}
-                      {cleanPhoneNumber(user.id)}
+                      <div className="flex flex-col">
+                        <span className="text-gray-900 dark:text-white font-medium">{user.profileData?.name || "N/A"}</span>
+                        <span className="text-gray-500 dark:text-slate-500 text-xs mt-0.5">{cleanPhoneNumber(user.id)}</span>
+                      </div>
                     </td>
-                    <td className="px-8 py-5 font-medium text-gray-600 dark:text-gray-400">{user.profileData?.name || "N/A"}</td>
                     <td className="px-8 py-5 font-medium text-gray-600 dark:text-gray-400 capitalize">
                       {user.profileData?.gender?.toLowerCase() === 'boy' ? 'Male' : 
                        user.profileData?.gender?.toLowerCase() === 'girl' ? 'Female' : 
