@@ -1,0 +1,28 @@
+rules_version = '2';
+
+// Craft rules based on data in your Firestore database
+// allow write: if firestore.get(
+//    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
+service firebase.storage {
+  match /b/{bucket}/o {
+    // By default, deny all access
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+
+    // Allow the Node.js WhatsApp Bot (unauthenticated) to upload images to specific folders
+    match /receipts/{fileName} {
+      // Anyone can read (URLs generated with getDownloadURL already have tokens, but this makes it foolproof)
+      allow read: if true;
+      // Restrict uploads to images smaller than 5MB
+      allow write: if request.resource.size < 5 * 1024 * 1024 
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    match /profiles/{fileName} {
+      allow read: if true;
+      allow write: if request.resource.size < 5 * 1024 * 1024 
+                   && request.resource.contentType.matches('image/.*');
+    }
+  }
+}
