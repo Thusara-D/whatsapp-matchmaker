@@ -193,7 +193,7 @@ export default function UsersPage() {
         ) : (
           <div className="overflow-x-auto rounded-xl border border-slate-800 overflow-hidden">
             <table className="w-full text-sm text-left border-collapse">
-              <thead className="text-slate-400 text-xs font-semibold uppercase tracking-wider bg-white/40 dark:bg-slate-800/40 border-b border-slate-800 transition-colors">
+              <thead className="text-white text-base font-bold uppercase tracking-wider bg-slate-900 transition-colors">
                 <tr>
                   <th className="px-8 py-5">Client</th>
                   <th className="px-8 py-5">Gender & Age</th>
