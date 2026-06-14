@@ -200,8 +200,8 @@ export default function UsersPage() {
                   <th className="px-8 py-5 font-bold">Gender & Age</th>
                   <th className="px-8 py-5 font-bold">District</th>
                   <th className="px-8 py-5 font-bold">Status</th>
-                  <th className="px-8 py-5 font-bold text-right">Actions</th>
-                  <th className="px-8 py-5 font-bold text-right">Match</th>
+                  <th className="px-8 py-5 font-bold text-center">Actions</th>
+                  <th className="px-8 py-5 font-bold text-center">Match</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/40 dark:divide-slate-800/50">
@@ -254,8 +254,8 @@ export default function UsersPage() {
                         <span className="text-gray-400 dark:text-gray-600 font-bold">-</span>
                       )}
                     </td>
-                    <td className="px-8 py-5 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                    <td className="px-8 py-5 text-center">
+                      <div className="flex items-center justify-center gap-2">
                         {(() => {
                           const photos = user.profileData?.photos || user.uploadedPhotos || [];
                           const hasPhotos = photos.length > 0;
@@ -286,8 +286,8 @@ export default function UsersPage() {
                          </button>
                       </div>
                     </td>
-                    <td className="px-8 py-5 text-right w-32">
-                      <div className="flex items-center justify-end">
+                    <td className="px-8 py-5 text-center w-32">
+                      <div className="flex items-center justify-center">
                         {user.status === 'AWAITING_PARTNER_APPROVAL' && user.selectedMatchId ? (
                           <button
                             onClick={() => handleAskPartner(user.id, user.selectedMatchId)}
