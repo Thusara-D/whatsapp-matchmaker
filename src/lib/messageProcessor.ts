@@ -59,17 +59,12 @@ export async function processIncomingMessage(
 
     if (base64Image) {
        if (userData.status === "AWAITING_PAYMENT_RECEIPT") {
-          const fs = await import('fs');
-          const path = await import('path');
-          const filename = `receipt_${from}_${Date.now()}.jpg`;
-          const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-          if (!fs.existsSync(uploadDir)) {
-             fs.mkdirSync(uploadDir, { recursive: true });
-          }
-          const filePath = path.join(uploadDir, filename);
+          const { storage } = await import('@/lib/firebase');
+          const { ref, uploadString, getDownloadURL } = await import('firebase/storage');
           const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, "");
-          fs.writeFileSync(filePath, base64Data, { encoding: 'base64' });
-          const photoUrl = `/uploads/${filename}`;
+          const storageRef = ref(storage, `receipts/receipt_${from}_${Date.now()}.jpg`);
+          await uploadString(storageRef, base64Data, 'base64', { contentType: 'image/jpeg' });
+          const photoUrl = await getDownloadURL(storageRef);
 
           userData.status = "PAYMENT_PENDING_APPROVAL";
           userData.paymentReceiptUrl = photoUrl;
@@ -87,19 +82,13 @@ export async function processIncomingMessage(
              return;
           }
 
-          // Save locally for testing
-          const filename = `${from}_${Date.now()}.jpg`;
-          const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-          if (!fs.existsSync(uploadDir)) {
-             fs.mkdirSync(uploadDir, { recursive: true });
-          }
-          const filePath = path.join(uploadDir, filename);
-          
-          // Strip data URI prefix if it exists
+          // Upload directly to Firebase Storage
+          const { storage } = await import('@/lib/firebase');
+          const { ref, uploadString, getDownloadURL } = await import('firebase/storage');
           const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, "");
-          fs.writeFileSync(filePath, base64Data, { encoding: 'base64' });
-          
-          const photoUrl = `/uploads/${filename}`;
+          const storageRef = ref(storage, `profiles/${from}_${Date.now()}.jpg`);
+          await uploadString(storageRef, base64Data, 'base64', { contentType: 'image/jpeg' });
+          const photoUrl = await getDownloadURL(storageRef);
 
 
           await setDoc(userRef, {
