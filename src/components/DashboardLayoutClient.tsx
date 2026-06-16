@@ -20,6 +20,9 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
   return (
     <div className="flex-1 flex flex-col z-10 relative min-w-0 h-full overflow-hidden">
       
+      {/* iOS Safe Area Spacer (Forces UI down below the Dynamic Island/Notch) */}
+      <div className="w-full bg-transparent flex-shrink-0" style={{ height: 'env(safe-area-inset-top, 24px)' }}></div>
+
       {/* TopNav - Rendered only on sub-pages */}
       {!isRoot && mounted && (
         <header className="flex-shrink-0 h-20 px-4 md:px-8 flex items-center justify-between border-b border-white/20 dark:border-slate-800/50 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md z-40 sticky top-0">
@@ -48,7 +51,10 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
       )}
 
       {/* Main Content Area */}
-      <main className={`flex-1 min-w-0 overflow-x-hidden overflow-y-auto ${isRoot ? '' : 'p-4 md:p-8'}`}>
+      <main 
+        className={`flex-1 min-w-0 overflow-x-hidden overflow-y-auto ${isRoot ? '' : 'p-4 md:p-8'}`}
+        style={{ paddingBottom: 'env(safe-area-inset-bottom, 24px)' }}
+      >
         {children}
       </main>
 

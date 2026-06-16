@@ -6,15 +6,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div 
-      className="relative flex h-screen overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-rose-50 via-teal-50 to-rose-50 dark:from-slate-900 dark:via-slate-950 dark:to-black transition-colors duration-500"
-      style={{
-        paddingTop: 'env(safe-area-inset-top)',
-        paddingBottom: 'env(safe-area-inset-bottom)',
-        paddingLeft: 'env(safe-area-inset-left)',
-        paddingRight: 'env(safe-area-inset-right)'
-      }}
-    >
+    <div className="relative flex h-screen overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-rose-50 via-teal-50 to-rose-50 dark:from-slate-900 dark:via-slate-950 dark:to-black transition-colors duration-500">
       
       {/* Global Animated Background Blobs for Dashboard */}
       <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-rose-200/50 dark:bg-pink-600/10 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-50 animate-blob pointer-events-none transition-colors duration-500"></div>
