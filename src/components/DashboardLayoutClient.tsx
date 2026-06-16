@@ -15,7 +15,11 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    // Auto-launch the mobile grid overlay as the default portal on mobile devices
+    if (isRoot && window.innerWidth < 768) {
+      setIsCurtainOpen(true);
+    }
+  }, [isRoot]);
 
   return (
     <div className="flex-1 flex flex-col z-10 relative min-w-0 h-full overflow-hidden">
