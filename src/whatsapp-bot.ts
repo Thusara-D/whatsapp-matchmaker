@@ -45,11 +45,17 @@ async function connectToWhatsApp() {
         // Ignore group messages (broadcast status is "status@broadcast")
         if (msg.key.remoteJid?.includes('@g.us') || msg.key.remoteJid === 'status@broadcast') return;
 
-        const from = msg.key.remoteJid;
+        // Extract real phone number (avoid @lid if possible)
+        let from = msg.key.remoteJid;
+        if (from?.includes('@lid')) {
+            // Baileys sometimes provides the real phone number in alternate fields when using LIDs
+            from = msg.key.remoteJidAlt || msg.key.participantAlt || msg.key.participant || from;
+        }
+        
         if (!from) return;
 
         // Extract text body
-        const textMessage = msg.message.conversation || msg.message.extendedTextMessage?.text || '';
+        const textMessage = msg.message?.conversation || msg.message?.extendedTextMessage?.text || '';
         
         // Extract image if present
         const hasImage = !!msg.message.imageMessage;
