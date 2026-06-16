@@ -1,11 +1,8 @@
+import './env'; // MUST BE FIRST to load .env.local before Firebase initializes
 import { makeWASocket, useMultiFileAuthState, DisconnectReason } from '@whiskeysockets/baileys';
 import * as qrcode from 'qrcode-terminal';
 import { Boom } from '@hapi/boom';
-import * as dotenv from 'dotenv';
 import { processIncomingMessage } from './lib/messageProcessor';
-
-// Load environment variables from .env.local
-dotenv.config({ path: '.env.local' });
 
 async function connectToWhatsApp() {
     const { state, saveCreds } = await useMultiFileAuthState('auth_info_baileys');
