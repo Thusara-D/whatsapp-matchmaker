@@ -19,17 +19,16 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
 
   return (
     <div className="flex-1 flex flex-col z-10 relative min-w-0 h-full overflow-hidden">
-      
-      {/* iOS Safe Area Spacer (Forces UI down below the Dynamic Island/Notch) */}
-      <div className="w-full bg-transparent flex-shrink-0" style={{ height: 'env(safe-area-inset-top, 24px)' }}></div>
-
       {/* TopNav - Rendered only on sub-pages */}
       {!isRoot && mounted && (
-        <header className="flex-shrink-0 h-20 px-4 md:px-8 flex items-center justify-between border-b border-white/20 dark:border-slate-800/50 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md z-40 sticky top-0">
+        <header 
+          className="flex-shrink-0 px-4 md:px-8 pb-4 pt-4 flex items-center justify-between border-b border-white/20 dark:border-slate-800/50 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md z-40 sticky top-0"
+          style={{ paddingTop: 'calc(env(safe-area-inset-top, 24px) + 1rem)' }}
+        >
           <div className="flex items-center gap-4">
             <button 
               onClick={() => setIsCurtainOpen(true)}
-              className="p-3 rounded-xl bg-white/60 dark:bg-slate-800/60 hover:bg-rose-100 dark:hover:bg-rose-500/20 text-gray-700 dark:text-gray-200 hover:text-rose-600 dark:hover:text-rose-400 border border-white/50 dark:border-slate-700/50 transition-all shadow-sm"
+              className="md:hidden p-3 rounded-xl bg-white/60 dark:bg-slate-800/60 hover:bg-rose-100 dark:hover:bg-rose-500/20 text-gray-700 dark:text-gray-200 hover:text-rose-600 dark:hover:text-rose-400 border border-white/50 dark:border-slate-700/50 transition-all shadow-sm"
             >
               <Menu className="w-6 h-6" />
             </button>

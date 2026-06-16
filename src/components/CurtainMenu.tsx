@@ -19,12 +19,12 @@ export default function CurtainMenu({ isOpen, onClose }: CurtainMenuProps) {
   useEffect(() => setMounted(true), []);
 
   const links = [
-    { name: "Overview", href: "/dashboard/overview", icon: Home, color: "text-blue-500", glow: "shadow-[0_0_15px_rgba(59,130,246,0.3)]", bg: "bg-blue-500/10" },
-    { name: "Users", href: "/dashboard/users", icon: Users, color: "text-emerald-500", glow: "shadow-[0_0_15px_rgba(16,185,129,0.3)]", bg: "bg-emerald-500/10" },
-    { name: "Matches", href: "/dashboard/matches", icon: Heart, color: "text-rose-500", glow: "shadow-[0_0_15px_rgba(244,63,94,0.3)]", bg: "bg-rose-500/10" },
-    { name: "Payments", href: "/dashboard/payments", icon: CreditCard, color: "text-purple-500", glow: "shadow-[0_0_15px_rgba(168,85,247,0.3)]", bg: "bg-purple-500/10" },
-    { name: "Analytics", href: "/dashboard/analytics", icon: TrendingUp, color: "text-amber-500", glow: "shadow-[0_0_15px_rgba(245,158,11,0.3)]", bg: "bg-amber-500/10" },
-    { name: "Settings", href: "/dashboard/settings", icon: Settings, color: "text-gray-500", glow: "shadow-[0_0_15px_rgba(107,114,128,0.3)]", bg: "bg-gray-500/10" },
+    { name: "Overview", href: "/dashboard/overview", icon: Home, color: "text-rose-500", glow: "shadow-[0_0_20px_rgba(244,63,94,0.4)]", bg: "bg-rose-500", border: "border-rose-500/30" },
+    { name: "Users", href: "/dashboard/users", icon: Users, color: "text-emerald-400", glow: "shadow-[0_0_20px_rgba(52,211,153,0.15)]", bg: "bg-emerald-400/10", border: "border-emerald-400/20" },
+    { name: "Matches", href: "/dashboard/matches", icon: Heart, color: "text-rose-400", glow: "shadow-[0_0_20px_rgba(251,113,133,0.15)]", bg: "bg-rose-400/10", border: "border-rose-400/20" },
+    { name: "Payments", href: "/dashboard/payments", icon: CreditCard, color: "text-purple-500", glow: "shadow-[0_0_20px_rgba(168,85,247,0.15)]", bg: "bg-purple-500/10", border: "border-purple-500/20" },
+    { name: "Analytics", href: "/dashboard/analytics", icon: TrendingUp, color: "text-amber-500", glow: "shadow-[0_0_20px_rgba(245,158,11,0.15)]", bg: "bg-amber-500/10", border: "border-amber-500/20" },
+    { name: "Settings", href: "/dashboard/settings", icon: Settings, color: "text-gray-400", glow: "shadow-[0_0_20px_rgba(156,163,175,0.15)]", bg: "bg-gray-400/10", border: "border-gray-500/20" },
   ];
 
   useEffect(() => {
@@ -48,35 +48,40 @@ export default function CurtainMenu({ isOpen, onClose }: CurtainMenuProps) {
           animate={{ y: 0 }}
           exit={{ y: "-100%" }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="fixed inset-0 z-[100] bg-white/80 dark:bg-slate-950/80 backdrop-blur-3xl overflow-y-auto flex flex-col"
+          className="fixed inset-0 z-[100] bg-slate-950 overflow-y-auto flex flex-col"
         >
           {/* Header area of Curtain */}
-          <div className="flex items-center justify-between p-6 md:p-8">
-            <Link href="/dashboard" onClick={onClose} className="flex items-center gap-4 group">
-              <div className="w-12 h-12 bg-gradient-to-tr from-rose-400 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg shadow-rose-500/30 dark:shadow-[0_0_15px_rgba(236,72,153,0.5)] transition-transform group-hover:scale-105">
-                <Heart className="w-6 h-6 text-white fill-white" />
+          <div 
+            className="flex items-center justify-between px-6 pb-6"
+            style={{ paddingTop: 'calc(env(safe-area-inset-top, 24px) + 1rem)' }}
+          >
+            <Link href="/dashboard" onClick={onClose} className="flex items-center gap-3 group">
+              <div className="w-12 h-12 bg-gradient-to-tr from-rose-400 to-pink-500 rounded-[14px] flex items-center justify-center shadow-[0_0_20px_rgba(236,72,153,0.6)]">
+                <Heart className="w-7 h-7 text-white fill-white" />
               </div>
-              <div>
-                <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 tracking-tight">Matchmaker</h2>
-                <p className="text-rose-500 dark:text-pink-400 text-xs font-semibold uppercase tracking-wider mt-0.5">Admin Portal</p>
+              <div className="flex flex-col">
+                <h2 className="text-[20px] font-bold text-white tracking-tight leading-tight">Matchmaker</h2>
+                <p className="text-pink-500 text-[10px] font-extrabold uppercase tracking-widest mt-0.5">Admin Portal</p>
               </div>
             </Link>
 
-            <div className="flex items-center gap-6">
-              <ThemeToggle />
+            <div className="flex items-center gap-4">
+              <div className="bg-slate-800/80 rounded-full border border-slate-700/50 p-0.5">
+                <ThemeToggle />
+              </div>
               <button 
                 onClick={onClose}
-                className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-300 hover:bg-rose-100 dark:hover:bg-rose-500/20 hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
+                className="w-11 h-11 flex items-center justify-center rounded-full bg-slate-800/80 border border-slate-700/50 text-gray-300 hover:bg-slate-700 transition-colors"
               >
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5" />
               </button>
             </div>
           </div>
 
           {/* Grid Layout inside Curtain */}
-          <div className="flex-1 flex flex-col items-center justify-center p-4">
+          <div className="flex-1 flex flex-col items-center p-4 pt-2">
             <motion.div 
-              className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-8 max-w-5xl w-full"
+              className="grid grid-cols-2 gap-4 w-full max-w-sm"
               initial="hidden"
               animate="visible"
               exit="hidden"
@@ -84,7 +89,7 @@ export default function CurtainMenu({ isOpen, onClose }: CurtainMenuProps) {
                 hidden: { opacity: 0 },
                 visible: {
                   opacity: 1,
-                  transition: { staggerChildren: 0.05, delayChildren: 0.2 }
+                  transition: { staggerChildren: 0.05, delayChildren: 0.1 }
                 }
               }}
             >
@@ -94,23 +99,25 @@ export default function CurtainMenu({ isOpen, onClose }: CurtainMenuProps) {
                   <Link href={card.href} key={card.name} onClick={onClose} passHref>
                     <motion.div 
                       variants={{
-                        hidden: { opacity: 0, y: 20 },
+                        hidden: { opacity: 0, y: 15 },
                         visible: { opacity: 1, y: 0 }
                       }}
-                      whileHover={{ scale: 1.05 }}
+                      whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.95 }}
-                      className={`relative bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border rounded-3xl p-6 md:p-8 flex flex-col items-center justify-center text-center cursor-pointer shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] transition-colors group h-full
-                        ${isActive ? 'border-rose-500/50 dark:border-rose-500/50 bg-rose-50/50 dark:bg-rose-900/20' : 'border-white/50 dark:border-slate-700/50'}
+                      className={`relative rounded-[28px] p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-colors group aspect-square
+                        ${isActive 
+                          ? 'border border-rose-500/50 bg-rose-500/5 shadow-[0_0_30px_rgba(244,63,94,0.1)]' 
+                          : 'border border-slate-800/60 bg-slate-900/50 hover:bg-slate-800/80'}
                       `}
                     >
-                      {isActive && (
-                        <div className="absolute inset-0 rounded-3xl border-2 border-rose-500/30 dark:border-rose-400/30 shadow-[inset_0_0_20px_rgba(244,63,94,0.1)] pointer-events-none"></div>
-                      )}
-                      
-                      <div className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center mb-4 md:mb-6 z-10 ${isActive ? 'bg-rose-500 text-white shadow-[0_0_20px_rgba(244,63,94,0.4)]' : `${card.bg} ${card.color} ${card.glow}`} transition-all duration-300 group-hover:shadow-xl`}>
-                        <card.icon className="w-8 h-8 md:w-10 md:h-10" />
+                      <div className={`w-[72px] h-[72px] rounded-[22px] flex items-center justify-center mb-4 transition-all duration-300
+                        ${isActive 
+                          ? 'bg-rose-500 text-white shadow-[0_0_20px_rgba(244,63,94,0.5)]' 
+                          : `${card.bg} ${card.color} group-hover:${card.glow}`}
+                      `}>
+                        <card.icon className="w-8 h-8" />
                       </div>
-                      <h3 className={`text-xl md:text-2xl font-bold z-10 transition-colors ${isActive ? 'text-rose-600 dark:text-rose-400' : 'text-gray-800 dark:text-gray-100'}`}>
+                      <h3 className={`text-[15px] font-bold tracking-wide transition-colors ${isActive ? 'text-rose-400' : 'text-slate-200'}`}>
                         {card.name}
                       </h3>
                     </motion.div>

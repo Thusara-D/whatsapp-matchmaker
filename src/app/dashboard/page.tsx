@@ -22,11 +22,14 @@ export default function WelcomeHub() {
       <ParticleBackground />
 
       {/* Top Right Utilities */}
-      <div className="absolute top-6 right-6 z-50">
+      <div className="absolute top-[calc(env(safe-area-inset-top,24px)+1.5rem)] right-6 z-50">
         <ThemeToggle />
       </div>
 
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] relative w-full h-full max-w-5xl mx-auto px-4 py-8 z-10">
+      <div 
+        className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] relative w-full h-full max-w-5xl mx-auto px-4 pb-8 z-10"
+        style={{ paddingTop: 'calc(env(safe-area-inset-top, 24px) + 2rem)' }}
+      >
 
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
