@@ -191,9 +191,9 @@ export default function UsersPage() {
             <p className="text-gray-500 dark:text-gray-400 text-sm mt-2 transition-colors">Try adjusting your filters.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-slate-800 overflow-hidden">
-            <table className="w-full text-sm text-left border-collapse">
-              <thead className="text-white text-base font-bold uppercase tracking-wider bg-slate-900 transition-colors">
+          <div className="overflow-x-auto md:overflow-visible rounded-xl border border-slate-800 overflow-hidden">
+            <table className="w-full text-sm text-left border-collapse block md:table">
+              <thead className="text-white text-base font-bold uppercase tracking-wider bg-slate-900 transition-colors hidden md:table-header-group">
                 <tr>
                   <th className="px-8 py-5">Client</th>
                   <th className="px-8 py-5">Gender & Age</th>
@@ -203,7 +203,7 @@ export default function UsersPage() {
                   <th className="px-8 py-5 text-center">Match</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/40 dark:divide-slate-800/50">
+              <tbody className="divide-y divide-white/40 dark:divide-slate-800/50 block md:table-row-group">
                 {filteredUsers.map((user) => {
                   const photos = user.profileData?.photos || user.uploadedPhotos || [];
                   const hasTwoPhotos = photos.length >= 2;
@@ -215,22 +215,29 @@ export default function UsersPage() {
                   );
 
                   return (
-                  <tr key={user.id} className={`transition-colors duration-200 ${isComplete ? 'bg-emerald-500/5' : ''} hover:bg-slate-800/30`}>
-                    <td className="px-8 py-5 relative">
-                      {isComplete && <div className="absolute top-0 bottom-0 left-0 w-1 bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.5)]"></div>}
+                  <tr key={user.id} className={`transition-colors duration-200 ${isComplete ? 'bg-emerald-500/5' : ''} hover:bg-slate-800/30 block md:table-row mb-4 md:mb-0 bg-white/40 dark:bg-slate-800/20 md:bg-transparent rounded-2xl md:rounded-none p-4 md:p-0 shadow-sm md:shadow-none`}>
+                    <td className="px-4 md:px-8 py-3 md:py-5 relative block md:table-cell border-b border-gray-100/50 dark:border-slate-800/50 md:border-none">
+                      {isComplete && <div className="absolute top-0 bottom-0 left-0 w-1 bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.5)] rounded-l-2xl md:rounded-none"></div>}
                       <div className="flex flex-col">
-                        <span className="text-gray-900 dark:text-white font-medium">{user.profileData?.name || "N/A"}</span>
+                        <span className="text-gray-900 dark:text-white font-bold text-lg md:text-base">{user.profileData?.name || "N/A"}</span>
                         <span className="text-gray-500 dark:text-slate-500 text-xs mt-0.5">{cleanPhoneNumber(user.id)}</span>
                       </div>
                     </td>
-                    <td className="px-8 py-5 font-medium text-gray-600 dark:text-gray-400 capitalize">
-                      {user.profileData?.gender?.toLowerCase() === 'boy' ? 'Male' : 
-                       user.profileData?.gender?.toLowerCase() === 'girl' ? 'Female' : 
-                       user.profileData?.gender || "N/A"} 
-                      {user.profileData?.age ? ` (${user.profileData.age})` : ""}
+                    <td className="px-4 md:px-8 py-2 md:py-5 font-medium text-gray-600 dark:text-gray-400 capitalize block md:table-cell border-b border-gray-100/50 dark:border-slate-800/50 md:border-none flex justify-between md:table-cell">
+                      <span className="md:hidden font-bold text-xs uppercase text-gray-400">Gender & Age</span>
+                      <span>
+                        {user.profileData?.gender?.toLowerCase() === 'boy' ? 'Male' : 
+                         user.profileData?.gender?.toLowerCase() === 'girl' ? 'Female' : 
+                         user.profileData?.gender || "N/A"} 
+                        {user.profileData?.age ? ` (${user.profileData.age})` : ""}
+                      </span>
                     </td>
-                    <td className="px-8 py-5 font-medium text-gray-600 dark:text-gray-400">{user.profileData?.district || "N/A"}</td>
-                    <td className="px-8 py-5">
+                    <td className="px-4 md:px-8 py-2 md:py-5 font-medium text-gray-600 dark:text-gray-400 block md:table-cell border-b border-gray-100/50 dark:border-slate-800/50 md:border-none flex justify-between md:table-cell">
+                      <span className="md:hidden font-bold text-xs uppercase text-gray-400">District</span>
+                      <span>{user.profileData?.district || "N/A"}</span>
+                    </td>
+                    <td className="px-4 md:px-8 py-3 md:py-5 block md:table-cell border-b border-gray-100/50 dark:border-slate-800/50 md:border-none flex justify-between items-center md:table-cell">
+                      <span className="md:hidden font-bold text-xs uppercase text-gray-400">Status</span>
                       {user.status === 'MATCHES_SENT' ? (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-cyan-100 dark:bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 border border-cyan-200 dark:border-cyan-500/30 shadow-[0_0_15px_rgba(6,182,212,0.2)] transition-colors">
                           <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 shadow-[0_0_5px_#06b6d4] animate-pulse"></div>
@@ -255,8 +262,8 @@ export default function UsersPage() {
                         <span className="text-gray-400 dark:text-gray-600 font-bold">-</span>
                       )}
                     </td>
-                    <td className="px-8 py-5 text-center">
-                      <div className="flex items-center justify-center gap-2">
+                    <td className="px-4 md:px-8 py-3 md:py-5 text-center block md:table-cell border-b border-gray-100/50 dark:border-slate-800/50 md:border-none">
+                      <div className="flex items-center justify-start md:justify-center gap-2">
                         {(() => {
                           const photos = user.profileData?.photos || user.uploadedPhotos || [];
                           const hasPhotos = photos.length > 0;
@@ -287,8 +294,8 @@ export default function UsersPage() {
                          </button>
                       </div>
                     </td>
-                    <td className="px-8 py-5 text-center w-32">
-                      <div className="flex items-center justify-center">
+                    <td className="px-4 md:px-8 py-3 md:py-5 text-center w-full md:w-32 block md:table-cell">
+                      <div className="flex items-center justify-end md:justify-center w-full">
                         {user.status === 'AWAITING_PARTNER_APPROVAL' && user.selectedMatchId ? (
                           <button
                             onClick={() => handleAskPartner(user.id, user.selectedMatchId)}
