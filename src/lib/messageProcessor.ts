@@ -1,6 +1,7 @@
 import { processMessageWithGemini } from '@/lib/gemini';
-import { db } from '@/lib/firebase';
+import { db, storage } from '@/lib/firebase';
 import { doc, getDoc, setDoc, updateDoc, arrayUnion, deleteField } from 'firebase/firestore';
+import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { sendWhatsAppMessage } from '@/lib/whatsapp';
 
 export async function processIncomingMessage(
@@ -59,8 +60,6 @@ export async function processIncomingMessage(
 
     if (base64Image) {
        if (userData.status === "AWAITING_PAYMENT_RECEIPT") {
-          const { storage } = await import('@/lib/firebase');
-          const { ref, uploadString, getDownloadURL } = await import('firebase/storage');
           const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, "");
           const storageRef = ref(storage, `receipts/receipt_${from}_${Date.now()}.jpg`);
           await uploadString(storageRef, base64Data, 'base64', { contentType: 'image/jpeg' });
@@ -83,8 +82,6 @@ export async function processIncomingMessage(
           }
 
           // Upload directly to Firebase Storage
-          const { storage } = await import('@/lib/firebase');
-          const { ref, uploadString, getDownloadURL } = await import('firebase/storage');
           const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, "");
           const storageRef = ref(storage, `profiles/${from}_${Date.now()}.jpg`);
           await uploadString(storageRef, base64Data, 'base64', { contentType: 'image/jpeg' });
