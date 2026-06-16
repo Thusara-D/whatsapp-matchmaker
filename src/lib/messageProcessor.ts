@@ -11,7 +11,9 @@ export async function processIncomingMessage(
   sendReply: (to: string, text: string) => Promise<any>
 ) {
   try {
-    const userRef = doc(db, 'users', from);
+    // Extract strictly the raw phone number digits to use as the database Document ID
+    const rawPhoneNumber = from.split('@')[0];
+    const userRef = doc(db, 'users', rawPhoneNumber);
     const userSnap = await getDoc(userRef);
     let userData = userSnap.exists() ? userSnap.data() : { profileData: {}, chatHistory: "", status: "ONBOARDING", currentMatches: [], uploadedPhotos: [] };
     
