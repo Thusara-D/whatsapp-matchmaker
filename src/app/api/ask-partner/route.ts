@@ -31,16 +31,7 @@ export async function POST(request: Request) {
 
     const p = userData.profileData || {};
     
-    // 1. Send photos first (up to 2)
-    const photos = p.photos || userData.uploadedPhotos || [];
-    if (Array.isArray(photos)) {
-      const photosToSend = photos.slice(0, 2);
-      for (const photoUrl of photosToSend) {
-        await sendWhatsAppImage(partnerId, photoUrl);
-      }
-    }
-
-    // 2. Construct the detailed pitch message
+    // 1. Construct the detailed pitch message
     const pitchMessage = `සුබ දවසක්! 😊
 
 ඔබගේ විස්තර වලට ගැළපෙන කෙනෙක් ඔබගේ profile එකට කැමැත්ත පළකර ඇත. 
@@ -61,6 +52,15 @@ Oya meyata kamathi nam YES kiyala, akamathi nam NO kiyala reply karanna.`;
 
     // Send WhatsApp Text Message to Sanduni
     await sendWhatsAppMessage(partnerId, pitchMessage);
+
+    // 2. Send photos after details (up to 2)
+    const photos = p.photos || userData.uploadedPhotos || [];
+    if (Array.isArray(photos)) {
+      const photosToSend = photos.slice(0, 2);
+      for (const photoUrl of photosToSend) {
+        await sendWhatsAppImage(partnerId, photoUrl);
+      }
+    }
     
     // Add to Sanduni's chat history
     partnerData.chatHistory += `\nBot: [Sent Photos]\nBot: ${pitchMessage}`;

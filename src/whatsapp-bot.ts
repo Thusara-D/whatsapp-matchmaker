@@ -122,43 +122,51 @@ async function connectToWhatsApp() {
     const q = query(collection(dbInstance, 'outbox'), where('status', '==', 'pending'));
     console.log('\n[Outbox] Listening for outgoing messages from Firebase...');
     
-    onSnapshot(q, (snapshot) => {
-        snapshot.docChanges().forEach(async (change) => {
-            if (change.type === 'added') {
-                const data = change.doc.data();
-                const docId = change.doc.id;
-                
-                try {
-                    const { to: rawTo, text, imageUrl, imagePath } = data;
-                    const to = rawTo.includes('@') ? rawTo : `${rawTo}@s.whatsapp.net`;
-                    const imageTarget = imageUrl || imagePath;
-                    
-                    if (imageTarget) {
-                        if (imageTarget.startsWith('http')) {
-                            await sock.sendMessage(to, { image: { url: imageTarget } });
-                        } else {
-                            const fs = await import('fs');
-                            const path = await import('path');
-                            const fullPath = path.join(process.cwd(), 'public', imageTarget);
-                            if (fs.existsSync(fullPath)) {
-                                await sock.sendMessage(to, { image: { url: fullPath } });
-                            } else {
-                                console.error(`[Outbox] Local image not found, skipping: ${fullPath}`);
-                            }
-                        }
-                    } else if (text) {
-                        await sock.sendMessage(to, { text });
-                    }
-                    
-                    console.log(`[Outbox] Successfully sent message to ${to}`);
-                    
-                    // Delete the document after sending to prevent duplicate sends
-                    await deleteDoc(doc(dbInstance, 'outbox', docId));
-                } catch (err) {
-                    console.error(`[Outbox] Failed to send message for doc ${docId}:`, err);
-                }
-            }
+    onSnapshot(q, async (snapshot) => {
+        const addedChanges = snapshot.docChanges().filter(change => change.type === 'added');
+        if (addedChanges.length === 0) return;
+
+        // Sort by createdAt to ensure correct chronological sending
+        addedChanges.sort((a, b) => {
+            const timeA = a.doc.data().createdAt?.toMillis?.() || 0;
+            const timeB = b.doc.data().createdAt?.toMillis?.() || 0;
+            return timeA - timeB;
         });
+
+        for (const change of addedChanges) {
+            const data = change.doc.data();
+            const docId = change.doc.id;
+            
+            try {
+                const { to: rawTo, text, imageUrl, imagePath } = data;
+                const to = rawTo.includes('@') ? rawTo : `${rawTo}@s.whatsapp.net`;
+                const imageTarget = imageUrl || imagePath;
+                
+                if (imageTarget) {
+                    if (imageTarget.startsWith('http')) {
+                        await sock.sendMessage(to, { image: { url: imageTarget } });
+                    } else {
+                        const fs = await import('fs');
+                        const path = await import('path');
+                        const fullPath = path.join(process.cwd(), 'public', imageTarget);
+                        if (fs.existsSync(fullPath)) {
+                            await sock.sendMessage(to, { image: { url: fullPath } });
+                        } else {
+                            console.error(`[Outbox] Local image not found, skipping: ${fullPath}`);
+                        }
+                    }
+                } else if (text) {
+                    await sock.sendMessage(to, { text });
+                }
+                
+                console.log(`[Outbox] Successfully sent message to ${to}`);
+                
+                // Delete the document after sending to prevent duplicate sends
+                await deleteDoc(doc(dbInstance, 'outbox', docId));
+            } catch (err) {
+                console.error(`[Outbox] Failed to send message for doc ${docId}:`, err);
+            }
+        }
     });
 
 

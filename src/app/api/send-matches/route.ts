@@ -32,22 +32,19 @@ export async function POST(request: Request) {
     for (let i = 0; i < matches.length; i++) {
       const match = matches[i];
       
-      // 1. Send photos first (up to 2)
-      if (match.photos && Array.isArray(match.photos)) {
-        const photosToSend = match.photos.slice(0, 2);
-        for (const photoUrl of photosToSend) {
-          // photoUrl is typically like "/uploads/filename.jpg"
-          // In the IPC, we pass it as imagePath which expects a relative path inside 'public' folder
-          // So if it starts with '/', we can just pass it (path.join works fine) or strip it
-          await sendWhatsAppImage(userId, photoUrl);
-        }
-      }
-
-      // 2. Send details (without name and phone number)
+      // 1. Send details first (without name and phone number)
       const secureMatch = { ...match, name: undefined, phoneId: undefined };
       const matchMsg = formatMatchMessage(secureMatch, i);
       userData.chatHistory += `\nBot: ${matchMsg}`;
       await sendWhatsAppMessage(userId, matchMsg);
+
+      // 2. Send photos after details (up to 2)
+      if (match.photos && Array.isArray(match.photos)) {
+        const photosToSend = match.photos.slice(0, 2);
+        for (const photoUrl of photosToSend) {
+          await sendWhatsAppImage(userId, photoUrl);
+        }
+      }
     }
     
     // Dynamic Singlish footer
