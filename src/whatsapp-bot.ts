@@ -3,8 +3,11 @@ import { makeWASocket, useMultiFileAuthState, DisconnectReason } from '@whiskeys
 import * as qrcode from 'qrcode-terminal';
 import { Boom } from '@hapi/boom';
 import { processIncomingMessage } from '@/lib/messageProcessor';
+
+// STATIC IMPORTS strictly to bypass tsx/esm resolution mismatches
 import { db } from '@/lib/firebase';
-import { collection, query, where, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
+import { getApp } from 'firebase/app';
+import { collection, query, where, onSnapshot, deleteDoc, doc, getFirestore } from 'firebase/firestore';
 
 async function connectToWhatsApp() {
     const { state, saveCreds } = await useMultiFileAuthState('auth_info_baileys');
@@ -108,14 +111,12 @@ async function connectToWhatsApp() {
     // This allows the bot to securely receive messages from Next.js deployed anywhere (e.g. Railway)
     console.log("[DEBUG] NEXT_PUBLIC_FIREBASE_API_KEY:", process.env.NEXT_PUBLIC_FIREBASE_API_KEY ? "EXISTS" : "MISSING");
     
-    // We dynamically grab the db from the initialized app to bypass any ES module circular dependency issues
-    const { getApp } = await import('firebase/app');
-    const { getFirestore } = await import('firebase/firestore');
-    const dbInstance = getFirestore(getApp());
-    console.log("[DEBUG] dbInstance object:", dbInstance ? "VALID INSTANCE" : "UNDEFINED");
+    // Fallback: If `db` is undefined due to TSX/ESM resolution loop, fetch it directly
+    const dbInstance = db || getFirestore(getApp());
+    console.log("[DEBUG] dbInstance object valid:", !!dbInstance);
     
     if (!dbInstance) {
-        throw new Error("CRITICAL: Firebase 'dbInstance' is undefined.");
+        throw new Error("CRITICAL: Firebase 'dbInstance' could not be resolved.");
     }
 
     const q = query(collection(dbInstance, 'outbox'), where('status', '==', 'pending'));
