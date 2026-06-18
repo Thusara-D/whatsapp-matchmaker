@@ -101,23 +101,23 @@ async function connectToWhatsApp() {
         await processIncomingMessage(from, textMessage, base64Image, sendReply);
     });
 
-    // --- IPC Server ---
-    // Start a tiny local HTTP server so the Next.js frontend (e.g. the Payments Approval page)
-    // can ask this standalone bot process to send a WhatsApp message.
-    const http = await import('http');
-    const server = http.createServer((req, res) => {
-        if (req.url === '/send' && req.method === 'POST') {
-            const apiSecret = process.env.BOT_API_SECRET;
-            if (apiSecret && req.headers['x-api-secret'] !== apiSecret) {
-                res.writeHead(401);
-                return res.end('Unauthorized');
-            }
+    // --- Firebase Outbox Listener ---
+    // Instead of a local HTTP server, we listen to the 'outbox' collection in Firestore.
+    // This allows the bot to securely receive messages from Next.js deployed anywhere (e.g. Railway)
+    const { db } = await import('./lib/firebase');
+    const { collection, query, where, onSnapshot, deleteDoc, doc } = await import('firebase/firestore');
 
-            let body = '';
-            req.on('data', chunk => { body += chunk.toString(); });
-            req.on('end', async () => {
+    const q = query(collection(db, 'outbox'), where('status', '==', 'pending'));
+    console.log('\n[Outbox] Listening for outgoing messages from Firebase...');
+    
+    onSnapshot(q, (snapshot) => {
+        snapshot.docChanges().forEach(async (change) => {
+            if (change.type === 'added') {
+                const data = change.doc.data();
+                const docId = change.doc.id;
+                
                 try {
-                    const { to, text, imagePath, imageUrl } = JSON.parse(body);
+                    const { to, text, imageUrl, imagePath } = data;
                     const imageTarget = imageUrl || imagePath;
                     
                     if (imageTarget) {
@@ -131,21 +131,16 @@ async function connectToWhatsApp() {
                     } else if (text) {
                         await sock.sendMessage(to, { text });
                     }
-                    res.writeHead(200);
-                    res.end('OK');
-                } catch (e: any) {
-                    res.writeHead(500);
-                    res.end(e.toString());
+                    
+                    console.log(`[Outbox] Successfully sent message to ${to}`);
+                    
+                    // Delete the document after sending to prevent duplicate sends
+                    await deleteDoc(doc(db, 'outbox', docId));
+                } catch (err) {
+                    console.error(`[Outbox] Failed to send message for doc ${docId}:`, err);
                 }
-            });
-        } else {
-            res.writeHead(404);
-            res.end();
-        }
-    });
-    const PORT = process.env.PORT || 3001;
-    server.listen(PORT, () => {
-        console.log(`\n[IPC] Local server listening on port ${PORT} for Next.js requests.`);
+            }
+        });
     });
 }
 

@@ -1,34 +1,33 @@
+import { db } from './firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+
 /**
- * This is an Inter-Process Communication (IPC) helper.
- * Since Next.js and the Baileys WhatsApp bot run in two different Node processes,
- * we use a simple local HTTP request to ask the bot to send a message.
+ * Adds a message to the Firebase 'outbox' collection.
+ * The Baileys WhatsApp bot (running on a separate service) listens to this collection
+ * and sends the messages securely.
  */
 export async function sendWhatsAppMessage(to: string, text: string) {
     try {
-        await fetch((process.env.BOT_API_URL || 'http://localhost:3001') + '/send', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'x-api-secret': process.env.BOT_API_SECRET || ''
-            },
-            body: JSON.stringify({ to, text })
+        await addDoc(collection(db, 'outbox'), {
+            to,
+            text,
+            createdAt: serverTimestamp(),
+            status: 'pending'
         });
     } catch (error) {
-        console.error("IPC send error (is the bot running?):", error);
+        console.error("Firebase outbox send text error:", error);
     }
 }
 
 export async function sendWhatsAppImage(to: string, imageUrl: string) {
     try {
-        await fetch((process.env.BOT_API_URL || 'http://localhost:3001') + '/send', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'x-api-secret': process.env.BOT_API_SECRET || ''
-            },
-            body: JSON.stringify({ to, imageUrl })
+        await addDoc(collection(db, 'outbox'), {
+            to,
+            imageUrl,
+            createdAt: serverTimestamp(),
+            status: 'pending'
         });
     } catch (error) {
-        console.error("IPC send image error:", error);
+        console.error("Firebase outbox send image error:", error);
     }
 }
