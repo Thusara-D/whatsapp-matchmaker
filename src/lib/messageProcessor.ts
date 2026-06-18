@@ -209,13 +209,26 @@ export async function processIncomingMessage(
       const geminiResult = await processMessageWithGemini(msgBody, userData.chatHistory, userData.profileData);
       
       if (geminiResult) {
-        userData.profileData = { ...userData.profileData, ...geminiResult.profileData };
-        
-        if (geminiResult.isComplete && userData.profileData.hasUploadedTwoPhotos) {
-          userData.status = "WAITING_FOR_ADMIN";
+        // FIX: Re-fetch the document to avoid overwriting concurrent photo uploads!
+        const latestSnap = await getDoc(userRef);
+        if (latestSnap.exists()) {
+          const latestData = latestSnap.data();
+          latestData.profileData = { ...latestData.profileData, ...geminiResult.profileData };
+          latestData.chatHistory = latestData.chatHistory ? latestData.chatHistory + `\nUser: ${msgBody}` : userData.chatHistory;
+          
+          if (geminiResult.isComplete && latestData.profileData.hasUploadedTwoPhotos) {
+            latestData.status = "WAITING_FOR_ADMIN";
+          }
+          
+          await setDoc(userRef, latestData, { merge: true });
+        } else {
+          // Fallback if doc doesn't exist for some reason
+          userData.profileData = { ...userData.profileData, ...geminiResult.profileData };
+          if (geminiResult.isComplete && userData.profileData.hasUploadedTwoPhotos) {
+            userData.status = "WAITING_FOR_ADMIN";
+          }
+          await setDoc(userRef, userData, { merge: true });
         }
-        
-        await setDoc(userRef, userData, { merge: true });
       }
       // SILENT: No replies
     }

@@ -156,11 +156,14 @@ async function connectToWhatsApp() {
     });
 
 
-    // --- Dummy HTTP Server for Railway Health Checks ---
-    // Railway requires web services to bind to process.env.PORT and respond to HTTP requests.
-    // If we don't, the container is killed after 60 seconds with a "Crashed" status.
-    const http = await import('http');
-    const PORT = process.env.PORT || 3001;
+    // ... (rest of connectToWhatsApp)
+}
+
+// --- Dummy HTTP Server for Railway Health Checks ---
+// Railway requires web services to bind to process.env.PORT and respond to HTTP requests.
+// We keep this completely outside connectToWhatsApp so it only binds exactly once per process.
+const PORT = process.env.PORT || 3001;
+import('http').then((http) => {
     const server = http.createServer((req, res) => {
         res.writeHead(200, { 'Content-Type': 'text/plain' });
         res.end('Bot is running and listening to Firestore Outbox!\n');
@@ -168,7 +171,7 @@ async function connectToWhatsApp() {
     server.listen(PORT, () => {
         console.log(`\n[Health Check] Dummy server listening on port ${PORT} to keep Railway happy.`);
     });
-}
+});
 
 console.log("Starting Baileys WhatsApp Bot...");
 connectToWhatsApp();
