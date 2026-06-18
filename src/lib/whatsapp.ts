@@ -8,8 +8,9 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
  */
 export async function sendWhatsAppMessage(to: string, text: string) {
     try {
+        const jid = to.includes('@') ? to : `${to}@s.whatsapp.net`;
         await addDoc(collection(db, 'outbox'), {
-            to,
+            to: jid,
             text,
             createdAt: serverTimestamp(),
             status: 'pending'
@@ -21,8 +22,9 @@ export async function sendWhatsAppMessage(to: string, text: string) {
 
 export async function sendWhatsAppImage(to: string, imageUrl: string) {
     try {
+        const jid = to.includes('@') ? to : `${to}@s.whatsapp.net`;
         await addDoc(collection(db, 'outbox'), {
-            to,
+            to: jid,
             imageUrl,
             createdAt: serverTimestamp(),
             status: 'pending'

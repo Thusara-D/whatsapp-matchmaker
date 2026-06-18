@@ -129,16 +129,22 @@ async function connectToWhatsApp() {
                 const docId = change.doc.id;
                 
                 try {
-                    const { to, text, imageUrl, imagePath } = data;
+                    const { to: rawTo, text, imageUrl, imagePath } = data;
+                    const to = rawTo.includes('@') ? rawTo : `${rawTo}@s.whatsapp.net`;
                     const imageTarget = imageUrl || imagePath;
                     
                     if (imageTarget) {
                         if (imageTarget.startsWith('http')) {
                             await sock.sendMessage(to, { image: { url: imageTarget } });
                         } else {
+                            const fs = await import('fs');
                             const path = await import('path');
                             const fullPath = path.join(process.cwd(), 'public', imageTarget);
-                            await sock.sendMessage(to, { image: { url: fullPath } });
+                            if (fs.existsSync(fullPath)) {
+                                await sock.sendMessage(to, { image: { url: fullPath } });
+                            } else {
+                                console.error(`[Outbox] Local image not found, skipping: ${fullPath}`);
+                            }
                         }
                     } else if (text) {
                         await sock.sendMessage(to, { text });
