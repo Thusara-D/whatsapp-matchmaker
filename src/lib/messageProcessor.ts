@@ -1,6 +1,6 @@
 import { processMessageWithGemini } from '@/lib/gemini';
 import { db, storage } from '@/lib/firebase';
-import { doc, getDoc, setDoc, updateDoc, arrayUnion, deleteField } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, arrayUnion, deleteField, runTransaction } from 'firebase/firestore';
 import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { sendWhatsAppMessage } from '@/lib/whatsapp';
 
@@ -99,8 +99,6 @@ export async function processIncomingMessage(
           await uploadString(storageRef, base64Data, 'base64', { contentType: 'image/jpeg' });
           const photoUrl = await getDownloadURL(storageRef);
 
-          const { runTransaction } = await import('firebase/firestore');
-          
           let updatedDoc: any = null;
           let isDuplicate = false;
 
