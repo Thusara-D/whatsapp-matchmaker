@@ -7,11 +7,12 @@ import { CheckCircle2, ShieldCheck, FileText, X, XCircle, History, Clock } from 
 
 export default function PaymentsPage() {
   const [pendingUsers, setPendingUsers] = useState<any[]>([]);
+  const [waitingUsers, setWaitingUsers] = useState<any[]>([]);
   const [historyUsers, setHistoryUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [approvingId, setApprovingId] = useState<string | null>(null);
   const [selectedReceiptUrl, setSelectedReceiptUrl] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"pending" | "history">("pending");
+  const [activeTab, setActiveTab] = useState<"pending" | "waiting" | "history">("pending");
 
   useEffect(() => {
     fetchPaymentsData();
@@ -31,8 +32,17 @@ export default function PaymentsPage() {
       });
       setPendingUsers(pending);
 
+      // Fetch Waiting
+      const qWaiting = query(usersRef, where("status", "==", "PAYMENT_APPROVED_WAITING_FOR_PARTNER"));
+      const snapWaiting = await getDocs(qWaiting);
+      const waiting: any[] = [];
+      snapWaiting.forEach((doc) => {
+        waiting.push({ id: doc.id, ...doc.data() });
+      });
+      setWaitingUsers(waiting);
+
       // Fetch History
-      const qHistory = query(usersRef, where("status", "==", "MATCH_APPROVED"));
+      const qHistory = query(usersRef, where("status", "in", ["MATCH_APPROVED", "MATCH_COMPLETED"]));
       const snapHistory = await getDocs(qHistory);
       const history: any[] = [];
       snapHistory.forEach((doc) => {
@@ -107,10 +117,10 @@ export default function PaymentsPage() {
         </div>
         
         {/* Tab Navigation */}
-        <div className="flex p-1.5 bg-white/40 dark:bg-slate-800/60 backdrop-blur-md rounded-2xl border border-white/50 dark:border-slate-700/50 shadow-sm w-fit">
+        <div className="flex p-1.5 bg-white/40 dark:bg-slate-800/60 backdrop-blur-md rounded-2xl border border-white/50 dark:border-slate-700/50 shadow-sm w-fit overflow-x-auto">
           <button
             onClick={() => setActiveTab("pending")}
-            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
               activeTab === "pending"
                 ? "bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-sm shadow-emerald-500/10"
                 : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-white/50 dark:hover:bg-slate-700/50"
@@ -123,8 +133,22 @@ export default function PaymentsPage() {
             )}
           </button>
           <button
+            onClick={() => setActiveTab("waiting")}
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
+              activeTab === "waiting"
+                ? "bg-white dark:bg-slate-700 text-orange-600 dark:text-orange-400 shadow-sm shadow-orange-500/10"
+                : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-white/50 dark:hover:bg-slate-700/50"
+            }`}
+          >
+            <Clock className="w-4 h-4" />
+            Waiting for Partner
+            {waitingUsers.length > 0 && activeTab !== "waiting" && (
+              <span className="ml-1 px-2 py-0.5 rounded-full bg-orange-500 text-white text-[10px]">{waitingUsers.length}</span>
+            )}
+          </button>
+          <button
             onClick={() => setActiveTab("history")}
-            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
               activeTab === "history"
                 ? "bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-sm shadow-emerald-500/10"
                 : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-white/50 dark:hover:bg-slate-700/50"
@@ -138,7 +162,7 @@ export default function PaymentsPage() {
 
       <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border border-white/60 dark:border-slate-800/50 overflow-hidden transition-colors duration-300">
         {loading ? (
-          <div className="p-12 text-center text-gray-500 dark:text-gray-400 font-medium animate-pulse">Loading {activeTab === "pending" ? "pending payments" : "approval history"}...</div>
+          <div className="p-12 text-center text-gray-500 dark:text-gray-400 font-medium animate-pulse">Loading {activeTab} payments...</div>
         ) : activeTab === "pending" ? (
           pendingUsers.length === 0 ? (
             <div className="p-16 text-center flex flex-col items-center justify-center">
@@ -197,6 +221,46 @@ export default function PaymentsPage() {
                             {approvingId === user.id ? "Approving..." : "Approve & Send"}
                           </button>
                         </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
+        ) : activeTab === "waiting" ? (
+          waitingUsers.length === 0 ? (
+            <div className="p-16 text-center flex flex-col items-center justify-center">
+              <div className="w-20 h-20 bg-white/80 dark:bg-slate-800/80 rounded-full flex items-center justify-center mb-6 shadow-sm border border-white dark:border-slate-700 transition-colors">
+                <Clock className="w-10 h-10 text-orange-400 dark:text-orange-500" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-700 dark:text-gray-200 transition-colors">No users waiting</h3>
+              <p className="text-gray-500 dark:text-gray-400 text-sm mt-2 transition-colors">No approved users are waiting for their partner's payment right now.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left border-collapse">
+                <thead className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider bg-white/40 dark:bg-slate-800/40 border-b border-white/50 dark:border-slate-700/50 transition-colors">
+                  <tr>
+                    <th className="px-8 py-5 font-bold">Customer Number</th>
+                    <th className="px-8 py-5 font-bold">Customer Name</th>
+                    <th className="px-8 py-5 font-bold">Match ID</th>
+                    <th className="px-8 py-5 font-bold">Date Approved</th>
+                    <th className="px-8 py-5 font-bold text-right">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/40 dark:divide-slate-800/50">
+                  {waitingUsers.map((user) => (
+                    <tr key={user.id} className="hover:bg-white/60 dark:hover:bg-slate-800/60 transition-colors duration-200">
+                      <td className="px-8 py-6 font-bold text-gray-800 dark:text-gray-200">+{user.id}</td>
+                      <td className="px-8 py-6 font-medium text-gray-600 dark:text-gray-400">{user.profileData?.name || "Unknown"}</td>
+                      <td className="px-8 py-6 font-mono text-xs text-gray-500 dark:text-gray-500">{user.selectedMatchId}</td>
+                      <td className="px-8 py-6 font-medium text-gray-500 dark:text-gray-400">{formatDate(user.paymentApprovedAt)}</td>
+                      <td className="px-8 py-6 text-right">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-500/30 shadow-[0_0_15px_rgba(249,115,22,0.2)] transition-colors">
+                          <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_5px_#f97316] animate-pulse"></div>
+                          Wait Partner Pay
+                        </span>
                       </td>
                     </tr>
                   ))}

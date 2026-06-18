@@ -32,19 +32,21 @@ export async function processIncomingMessage(
         const sourceUserData = sourceUserSnap.data();
         
         if (isYes) {
-          // Partner approved! Update Nimal to AWAITING_PAYMENT_RECEIPT
+          // Partner approved! Both users need to complete payment
+          const bankMsgPrimary = `ශුභ ආරංචියක්! ඔබ තෝරාගත් සහකරු ඔබගේ විස්තර වලට කැමැත්ත පළකර ඇත! 🎉\n\nසහකරුගේ දුරකථන අංකය ලබාගැනීමට, කරුණාකර රුපියල් 5,000ක මුදල පහත ගිණුමට තැන්පත් කර, රිසිට් පතෙහි ඡායාරූපයක් මෙහි එවන්න.\n\nBank: BOC\nAcc Name: LoveRoad Matchmaker\nAcc No: 123456789`;
+          const bankMsgPartner = `ස්තුතියි! ඔබගේ කැමැත්ත අපි අනෙක් පාර්ශවයට දැනුම් දුන්නා. 🎉\n\nඔවුන්ගේ දුරකථන අංකය ලබාගැනීමට, කරුණාකර රුපියල් 5,000ක මුදල පහත ගිණුමට තැන්පත් කර, රිසිට් පතෙහි ඡායාරූපයක් මෙහි එවන්න.\n\nBank: BOC\nAcc Name: LoveRoad Matchmaker\nAcc No: 123456789`;
+          
+          // Update Primary Customer (Nimal)
           sourceUserData.status = 'AWAITING_PAYMENT_RECEIPT';
+          sourceUserData.chatHistory += `\nBot: ${bankMsgPrimary}`;
           await setDoc(sourceUserRef, sourceUserData, { merge: true });
+          await sendWhatsAppMessage(sourceUserId, bankMsgPrimary);
           
-          // Send Nimal the bank details message
-          const bankMsg = `ශුභ ආරංචියක්! ඔබ තෝරාගත් සහකරු ඔබගේ විස්තර වලට කැමැත්ත පළකර ඇත! 🎉\n\nවිස්තර ලබාගැනීමට, කරුණාකර රුපියල් 5,000ක මුදල පහත බැංකු ගණුදෙනු ගිණුමට තැන්පත් කර, එහි රිසිට් පතේ (Receipt) ඡායාරූපයක් මෙහි එවන්න.\n\nBank: BOC\nAcc Name: LoveRoad Matchmaker\nAcc No: 123456789`;
-          sourceUserData.chatHistory += `\nBot: ${bankMsg}`;
-          await setDoc(sourceUserRef, sourceUserData, { merge: true });
-          
-          await sendWhatsAppMessage(sourceUserId, bankMsg);
-          
-          // Send Sanduni confirmation
-          await sendReply(from, "Thank you! We have notified the partner. They will complete the payment to receive your contact details.");
+          // Update Partner (Sanduni)
+          userData.status = 'AWAITING_PAYMENT_RECEIPT';
+          userData.selectedMatchId = sourceUserId; // Link back to the primary user
+          userData.chatHistory += `\nBot: ${bankMsgPartner}`;
+          await sendReply(from, bankMsgPartner);
         } else {
           // Partner rejected
           sourceUserData.status = 'PARTNER_REJECTED';
@@ -83,20 +85,55 @@ export async function processIncomingMessage(
              return;
           }
 
-          // Upload directly to Firebase Storage
+          // Upload directly to Firebase Storage with Hash Deduplication
           const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, "");
-          const storageRef = ref(storage, `profiles/${from}_${Date.now()}.jpg`);
+          const crypto = await import('crypto');
+          const imageHash = crypto.createHash('sha256').update(base64Data).digest('hex');
+
+          if (userData.uploadedPhotoHashes?.includes(imageHash)) {
+             console.log("Duplicate image detected (pre-upload), skipping...");
+             return;
+          }
+
+          const storageRef = ref(storage, `profiles/${from}_${imageHash}.jpg`);
           await uploadString(storageRef, base64Data, 'base64', { contentType: 'image/jpeg' });
           const photoUrl = await getDownloadURL(storageRef);
 
+          const { runTransaction } = await import('firebase/firestore');
+          
+          let updatedDoc: any = null;
+          let isDuplicate = false;
 
-          await setDoc(userRef, {
-             uploadedPhotos: arrayUnion(photoUrl)
-          }, { merge: true });
+          await runTransaction(db, async (transaction) => {
+             const docSnap = await transaction.get(userRef);
+             if (!docSnap.exists()) return;
+             
+             const data = docSnap.data();
+             const hashes = data.uploadedPhotoHashes || [];
+             
+             if (hashes.includes(imageHash)) {
+                 isDuplicate = true;
+                 return;
+             }
+             
+             const photos = data.uploadedPhotos || [];
+             const newPhotos = [...photos, photoUrl];
+             const newHashes = [...hashes, imageHash];
+             
+             transaction.update(userRef, {
+                 uploadedPhotos: newPhotos,
+                 uploadedPhotoHashes: newHashes
+             });
+             
+             updatedDoc = { ...data, uploadedPhotos: newPhotos, uploadedPhotoHashes: newHashes };
+          });
 
-          const updatedSnap = await getDoc(userRef);
-          const updatedDoc = updatedSnap.data() as any;
-          const length = updatedDoc?.uploadedPhotos?.length || 0;
+          if (isDuplicate || !updatedDoc) {
+             console.log("Duplicate image detected during transaction, skipping...");
+             return;
+          }
+
+          const length = updatedDoc.uploadedPhotos.length;
           console.log("Verified Array Length in DB:", length);
 
           if (length === 1) {
@@ -126,8 +163,7 @@ export async function processIncomingMessage(
                      const isSamePerson = await compareTwoPhotosWithGemini(firstBase64, base64Image);
                      if (!isSamePerson) {
                          // SILENT REJECTION - Reset photos
-                         updatedDoc.uploadedPhotos = [];
-                         await setDoc(userRef, updatedDoc, { merge: true });
+                         await setDoc(userRef, { uploadedPhotos: [], uploadedPhotoHashes: [] }, { merge: true });
                          return;
                      }
                  } catch (error) {

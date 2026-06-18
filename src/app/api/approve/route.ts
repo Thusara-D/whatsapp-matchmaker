@@ -39,15 +39,44 @@ export async function POST(request: Request) {
 
     const matchData = matchSnap.data();
     
-    // Send the contact info via WhatsApp
-    const contactMessage = `✅ Payment Approved!\n\nHere are the contact details for your match:\n\nName: ${matchData.profileData?.name || 'Not provided'}\nPhone Number: +${matchedUserId}\n\nWe wish you the best of luck! (ඔබට සුභ පතනවා!)`;
-    
-    userData.status = 'MATCH_APPROVED';
-    userData.paymentApprovedAt = new Date().toISOString();
-    userData.chatHistory += `\nBot: ${contactMessage}`;
-    await setDoc(userRef, userData, { merge: true });
+    // Check Partner's Approval Status
+    const isPartnerApproved = matchData.status === 'PAYMENT_APPROVED_WAITING_FOR_PARTNER' || matchData.status === 'MATCH_COMPLETED';
 
-    await sendWhatsAppMessage(userId, contactMessage);
+    if (isPartnerApproved) {
+      // BOTH have paid! Release details to BOTH
+      const contactMessageToUser = `✅ Payment Approved!\n\nHere are the contact details for your match:\n\nName: ${matchData.profileData?.name || 'Not provided'}\nPhone Number: +${matchedUserId}\n\nWe wish you the best of luck! (ඔබට සුභ පතනවා!)`;
+      const contactMessageToPartner = `✅ Your partner has completed their payment!\n\nHere are the contact details for your match:\n\nName: ${userData.profileData?.name || 'Not provided'}\nPhone Number: +${userId}\n\nWe wish you the best of luck! (ඔබට සුභ පතනවා!)`;
+      
+      // Update User A
+      userData.status = 'MATCH_COMPLETED';
+      userData.paymentApprovedAt = new Date().toISOString();
+      userData.chatHistory += `\nBot: ${contactMessageToUser}`;
+      await setDoc(userRef, userData, { merge: true });
+      await sendWhatsAppMessage(userId, contactMessageToUser);
+
+      // Update User B
+      matchData.status = 'MATCH_COMPLETED';
+      matchData.chatHistory += `\nBot: ${contactMessageToPartner}`;
+      await setDoc(matchRef, matchData, { merge: true });
+      await sendWhatsAppMessage(matchedUserId, contactMessageToPartner);
+
+    } else {
+      // ONLY User A has paid. Waiting for User B.
+      const waitingMessageToUser = `✅ Payment Approved!\n\nWe are currently waiting for your partner to complete their payment. As soon as they do, we will automatically send you their contact details. (අපි සහකරුගේ ගෙවීම තහවුරු වනතුරු රැඳී සිටිමු. ඉන්පසු වහාම විස්තර එවන්නෙමු)`;
+      
+      const nudgeMessageToPartner = `ඔබගේ සහකරු ඔවුන්ගේ මුදල් ගෙවීම සම්පූර්ණ කර ඇත! 🎉\n\nකරුණාකර ඔබගේ ගෙවීමද සම්පූර්ණ කර රිසිට් පත එවන්න. එවිට ඔබට ඔවුන්ගේ දුරකථන අංකය ලබාගත හැක.`;
+      
+      userData.status = 'PAYMENT_APPROVED_WAITING_FOR_PARTNER';
+      userData.paymentApprovedAt = new Date().toISOString();
+      userData.chatHistory += `\nBot: ${waitingMessageToUser}`;
+      await setDoc(userRef, userData, { merge: true });
+      await sendWhatsAppMessage(userId, waitingMessageToUser);
+
+      // Nudge the partner
+      matchData.chatHistory += `\nBot: ${nudgeMessageToPartner}`;
+      await setDoc(matchRef, matchData, { merge: true });
+      await sendWhatsAppMessage(matchedUserId, nudgeMessageToPartner);
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

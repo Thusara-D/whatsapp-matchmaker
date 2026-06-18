@@ -209,7 +209,7 @@ export default function UsersPage() {
                   const hasTwoPhotos = photos.length >= 2;
                   
                   const isComplete = hasTwoPhotos && (
-                    ['COMPLETE', 'MATCHES_SENT', 'AWAITING_PARTNER_APPROVAL', 'PAYMENT_PENDING', 'AWAITING_PAYMENT_RECEIPT', 'PAYMENT_PENDING_APPROVAL', 'MATCH_APPROVED'].includes(user.status) || 
+                    ['COMPLETE', 'MATCHES_SENT', 'AWAITING_PARTNER_APPROVAL', 'PAYMENT_PENDING', 'AWAITING_PAYMENT_RECEIPT', 'PAYMENT_PENDING_APPROVAL', 'PAYMENT_APPROVED_WAITING_FOR_PARTNER', 'MATCH_APPROVED', 'MATCH_COMPLETED'].includes(user.status) || 
                     user.profileData?.isComplete === true ||
                     user.status === 'WAITING_FOR_ADMIN'
                   );
@@ -253,10 +253,20 @@ export default function UsersPage() {
                           <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shadow-[0_0_5px_#a855f7] animate-pulse"></div>
                           {user.status === 'PAYMENT_PENDING_APPROVAL' ? 'Verifying Payment' : 'Payment Pending'}
                         </span>
-                      ) : user.status === 'MATCH_APPROVED' ? (
+                      ) : user.status === 'PAYMENT_APPROVED_WAITING_FOR_PARTNER' ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-500/30 shadow-[0_0_15px_rgba(249,115,22,0.2)] transition-colors">
+                          <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_5px_#f97316] animate-pulse"></div>
+                          Wait Partner Pay
+                        </span>
+                      ) : ['MATCH_APPROVED', 'MATCH_COMPLETED'].includes(user.status) ? (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.2)] transition-colors">
                           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_#10b981] animate-pulse"></div>
-                          Payment Verified
+                          Match Complete
+                        </span>
+                      ) : ['COMPLETE', 'WAITING_FOR_ADMIN'].includes(user.status) ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-100/50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-500/20 transition-colors">
+                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                          Ready
                         </span>
                       ) : (
                         <span className="text-gray-400 dark:text-gray-600 font-bold">-</span>
@@ -303,7 +313,7 @@ export default function UsersPage() {
                           >
                             Ask Partner
                           </button>
-                        ) : (user.status === 'COMPLETE' || user.status === 'MATCHES_SENT') ? (
+                        ) : (['COMPLETE', 'MATCHES_SENT', 'WAITING_FOR_ADMIN'].includes(user.status)) ? (
                           <button
                             onClick={() => router.push(`/dashboard/matches?userId=${user.id}`)}
                             className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-rose-400 to-pink-500 hover:from-rose-500 hover:to-pink-600 text-white text-sm font-bold rounded-xl transition-all shadow-[0_0_15px_rgba(244,63,94,0.4)] hover:shadow-[0_0_20px_rgba(244,63,94,0.6)] hover:scale-105 active:scale-95 whitespace-nowrap"
