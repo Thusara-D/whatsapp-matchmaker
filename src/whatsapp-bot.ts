@@ -2,7 +2,9 @@ import './env'; // MUST BE FIRST to load .env.local before Firebase initializes
 import { makeWASocket, useMultiFileAuthState, DisconnectReason } from '@whiskeysockets/baileys';
 import * as qrcode from 'qrcode-terminal';
 import { Boom } from '@hapi/boom';
-import { processIncomingMessage } from './lib/messageProcessor';
+import { processIncomingMessage } from '@/lib/messageProcessor';
+import { db } from '@/lib/firebase';
+import { collection, query, where, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
 
 async function connectToWhatsApp() {
     const { state, saveCreds } = await useMultiFileAuthState('auth_info_baileys');
@@ -104,10 +106,19 @@ async function connectToWhatsApp() {
     // --- Firebase Outbox Listener ---
     // Instead of a local HTTP server, we listen to the 'outbox' collection in Firestore.
     // This allows the bot to securely receive messages from Next.js deployed anywhere (e.g. Railway)
-    const { db } = await import('./lib/firebase');
-    const { collection, query, where, onSnapshot, deleteDoc, doc } = await import('firebase/firestore');
+    console.log("[DEBUG] NEXT_PUBLIC_FIREBASE_API_KEY:", process.env.NEXT_PUBLIC_FIREBASE_API_KEY ? "EXISTS" : "MISSING");
+    
+    // We dynamically grab the db from the initialized app to bypass any ES module circular dependency issues
+    const { getApp } = await import('firebase/app');
+    const { getFirestore } = await import('firebase/firestore');
+    const dbInstance = getFirestore(getApp());
+    console.log("[DEBUG] dbInstance object:", dbInstance ? "VALID INSTANCE" : "UNDEFINED");
+    
+    if (!dbInstance) {
+        throw new Error("CRITICAL: Firebase 'dbInstance' is undefined.");
+    }
 
-    const q = query(collection(db, 'outbox'), where('status', '==', 'pending'));
+    const q = query(collection(dbInstance, 'outbox'), where('status', '==', 'pending'));
     console.log('\n[Outbox] Listening for outgoing messages from Firebase...');
     
     onSnapshot(q, (snapshot) => {
@@ -135,7 +146,7 @@ async function connectToWhatsApp() {
                     console.log(`[Outbox] Successfully sent message to ${to}`);
                     
                     // Delete the document after sending to prevent duplicate sends
-                    await deleteDoc(doc(db, 'outbox', docId));
+                    await deleteDoc(doc(dbInstance, 'outbox', docId));
                 } catch (err) {
                     console.error(`[Outbox] Failed to send message for doc ${docId}:`, err);
                 }
