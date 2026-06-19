@@ -272,3 +272,50 @@ export async function processPitchReplyWithGemini(userMessage: string, chatHisto
     };
   }
 }
+
+export async function routeUserIntentWithGemini(userMessage: string, chatHistory: string, currentMatches: any[]) {
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.5-flash",
+    generationConfig: { responseMimeType: "application/json" }
+  });
+
+  const matchDetails = (currentMatches && currentMatches.length > 0) ? currentMatches.map((m, index) => 
+    `Match #${index + 1}: ID=${m.id}, Age=${m.age}, District=${m.district}, Job=${m.job}`
+  ).join("\n") : "No matches currently";
+
+  const systemInstruction = `
+    You are an intent router for a matchmaking bot. 
+    The user is currently in a state collision:
+    1. They recently received a list of matches to choose from:
+       ${matchDetails}
+    2. They ALSO just received a direct "Pitch" (a request from a specific person asking if they want to connect).
+
+    Recent Chat History:
+    ${chatHistory}
+
+    User's latest message: "${userMessage}"
+
+    Your job is ONLY to determine what the user is replying to.
+    
+    OPTIONS:
+    - "PITCH_REPLY": The user is accepting or rejecting the direct pitch (e.g. "yes I like them", "kamathi", "no", "eya hariyanne na wage").
+    - "MATCH_SELECTION": The user is explicitly talking about their match list, asking for more matches, or selecting a match from the list (e.g. "I want match 1", "mata 2 weni ekena oni", "thawa pennanna", "wena nadda").
+    - "UNKNOWN": Cannot determine context.
+
+    Return the result STRICTLY as a JSON object matching this structure:
+    {
+      "intent": "PITCH_REPLY" | "MATCH_SELECTION" | "UNKNOWN"
+    }
+  `;
+
+  const result = await model.generateContent(systemInstruction);
+  const responseText = result.response.text();
+
+  try {
+    const parsed = JSON.parse(responseText);
+    return parsed.intent || "UNKNOWN";
+  } catch (e) {
+    console.error("Failed to parse Gemini intent router as JSON", e);
+    return "UNKNOWN";
+  }
+}

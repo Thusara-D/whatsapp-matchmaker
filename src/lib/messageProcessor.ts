@@ -19,8 +19,22 @@ export async function processIncomingMessage(
     
     if (msgBody) userData.chatHistory += `\nUser: ${msgBody}`;
 
+    const hasPendingPitch = userData.pendingPitch && userData.pendingPitch.status === 'PENDING';
+    const isSelectingMatches = userData.status === "MATCHES_SENT";
+
+    let intent = "UNKNOWN";
+
+    if (hasPendingPitch && isSelectingMatches && msgBody) {
+       const { routeUserIntentWithGemini } = await import('@/lib/gemini');
+       intent = await routeUserIntentWithGemini(msgBody, userData.chatHistory, userData.currentMatches);
+    } else if (hasPendingPitch) {
+       intent = "PITCH_REPLY";
+    } else if (isSelectingMatches) {
+       intent = "MATCH_SELECTION";
+    }
+
     // Handle Pending Pitch Replies (Mutual Consent Workflow)
-    if (userData.pendingPitch && userData.pendingPitch.status === 'PENDING' && msgBody) {
+    if (intent === "PITCH_REPLY" && msgBody) {
       const { processPitchReplyWithGemini } = await import('@/lib/gemini');
       const result = await processPitchReplyWithGemini(msgBody, userData.chatHistory);
       const isYes = result?.isYes || false;
@@ -185,7 +199,7 @@ export async function processIncomingMessage(
     }
 
     // Handle Smart Match Selection 
-    if (userData.status === "MATCHES_SENT" && !base64Image && msgBody) {
+    if (intent === "MATCH_SELECTION" && !base64Image && msgBody) {
       const { processMatchSelectionWithGemini } = await import('@/lib/gemini');
       const selectionResult = await processMatchSelectionWithGemini(msgBody, userData.chatHistory, userData.currentMatches);
       
