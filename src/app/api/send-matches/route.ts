@@ -30,21 +30,26 @@ export async function POST(request: Request) {
     
     // Send each match details
     for (let i = 0; i < matches.length; i++) {
+      if (i > 0) {
+        // Wait 5 seconds before sending the next match
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      }
+
       const match = matches[i];
       
-      // 1. Send details first (without name and phone number)
-      const secureMatch = { ...match, name: undefined, phoneId: undefined };
-      const matchMsg = formatMatchMessage(secureMatch, i);
-      userData.chatHistory += `\nBot: ${matchMsg}`;
-      await sendWhatsAppMessage(userId, matchMsg);
-
-      // 2. Send photos after details (up to 2)
+      // 1. Send photos first (up to 2)
       if (match.photos && Array.isArray(match.photos)) {
         const photosToSend = match.photos.slice(0, 2);
         for (const photoUrl of photosToSend) {
           await sendWhatsAppImage(userId, photoUrl);
         }
       }
+
+      // 2. Send details after photos (without name and phone number)
+      const secureMatch = { ...match, name: undefined, phoneId: undefined };
+      const matchMsg = formatMatchMessage(secureMatch, i);
+      userData.chatHistory += `\nBot: ${matchMsg}`;
+      await sendWhatsAppMessage(userId, matchMsg);
     }
     
     // Dynamic Singlish footer
