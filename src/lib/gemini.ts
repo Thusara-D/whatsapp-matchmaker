@@ -18,6 +18,8 @@ export async function processMessageWithGemini(userMessage: string, chatHistory:
     - If they type in Singlish (Sinhala using English letters), reply in Singlish. 
     - If they type in proper Sinhala (Unicode/Sinhala letters), reply in proper Sinhala script. 
     - If they type in English, reply in English.
+    
+    LANGUAGE UNDERSTANDING: You MUST deeply understand Sri Lankan colloquialisms, indirect speech, and idioms in both Sinhala and Singlish. Users often use indirect phrases (e.g., "hariyanne na wage", "thawa aya nadda"). Interpret their true intent accurately.
     Be polite and welcoming.
     
     If the current profile state is completely empty (no details provided yet), your first message should warmly welcome them and cleanly ask for ALL the required details at once in a bulleted/numbered list.
@@ -108,6 +110,8 @@ export async function processMatchSelectionWithGemini(userMessage: string, chatH
     - If they type in proper Sinhala (Unicode/Sinhala letters), reply in proper Sinhala script. 
     - If they type in English, reply in English.
     
+    LANGUAGE UNDERSTANDING: You MUST deeply understand Sri Lankan colloquialisms, indirect speech, and idioms in both Sinhala and Singlish. Users often use indirect phrases (e.g., "hariyanne na wage", "thawa aya nadda"). Interpret their true intent accurately.
+    
     Here are the matches currently shown to the user:
     ${matchDetails}
     
@@ -117,7 +121,7 @@ export async function processMatchSelectionWithGemini(userMessage: string, chatH
     User's latest message: "${userMessage}"
     
     Analyze the user's latest message to determine their intent:
-    1. "SEND_MORE": The user doesn't like these matches and wants to see more. (e.g., "thawa pennanna", "wena ewanna", "not interested in these", "more please").
+    1. "SEND_MORE": The user doesn't like these matches and wants to see more. They might say this directly or indirectly (e.g., "thawa pennanna", "wena ewanna", "not interested in these", "more please", "eya hariyanne na wage", "thawa kenek balamuda", "thawa aya nadda").
     2. "SELECT_MATCH": The user explicitly or naturally selects a match from the list. (e.g., "mata match 1 dhenna", "I like the doctor from Colombo", "I want match #2").
     3. "UNKNOWN": The user is asking a general question or chatting about something else.
     
@@ -184,6 +188,8 @@ export async function processPostApprovalWithGemini(userMessage: string, chatHis
     - If they type in proper Sinhala (Unicode/Sinhala letters), reply in proper Sinhala script. 
     - If they type in English, reply in English.
     
+    LANGUAGE UNDERSTANDING: You MUST deeply understand Sri Lankan colloquialisms, indirect speech, and idioms in both Sinhala and Singlish.
+    
     Recent Chat History:
     ${chatHistory}
     
@@ -223,6 +229,7 @@ export async function processPitchReplyWithGemini(userMessage: string, chatHisto
     1. Determine if their reply indicates YES (approval/acceptance) or NO (rejection/decline). 
        - "kamathi", "කැමතියි", "yes", "ok" means YES. 
        - "akamathi", "එපා", "no" means NO.
+       - Users often reject indirectly. Phrases like "eya hariyanne na wage" (seems unsuitable), "thawa kenek balamuda" (shall we look for someone else?), or "thawa aya nadda" (are there others?) MUST be treated as a clear NO.
        - If they are just asking a question, treat it as NO for now, or just focus on if it's a clear YES.
     
     2. Based on their choice, write a response message back to them.
