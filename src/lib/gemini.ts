@@ -19,7 +19,7 @@ export async function processMessageWithGemini(userMessage: string, chatHistory:
     - If they type in proper Sinhala (Unicode/Sinhala letters), reply in proper Sinhala script. 
     - If they type in English, reply in English.
     
-    LANGUAGE UNDERSTANDING: You MUST deeply understand Sri Lankan colloquialisms, indirect speech, and idioms in both Sinhala and Singlish. Users often use indirect phrases (e.g., "hariyanne na wage", "thawa aya nadda"). Interpret their true intent accurately.
+    LANGUAGE UNDERSTANDING: You MUST deeply understand Sri Lankan colloquialisms, indirect speech, and idioms in both Sinhala and Singlish. Users often use indirect phrases (e.g., "hariyanne na wage", "thawa aya nadda"). The examples provided are just a small sample; you must use your full linguistic capability to understand ANY variation of how a Sri Lankan user might express these intents. Interpret their true intent accurately.
     Be polite and welcoming.
     
     If the current profile state is completely empty (no details provided yet), your first message should warmly welcome them and cleanly ask for ALL the required details at once in a bulleted/numbered list.
@@ -110,7 +110,7 @@ export async function processMatchSelectionWithGemini(userMessage: string, chatH
     - If they type in proper Sinhala (Unicode/Sinhala letters), reply in proper Sinhala script. 
     - If they type in English, reply in English.
     
-    LANGUAGE UNDERSTANDING: You MUST deeply understand Sri Lankan colloquialisms, indirect speech, and idioms in both Sinhala and Singlish. Users often use indirect phrases (e.g., "hariyanne na wage", "thawa aya nadda"). Interpret their true intent accurately.
+    LANGUAGE UNDERSTANDING: You MUST deeply understand Sri Lankan colloquialisms, indirect speech, and idioms in both Sinhala and Singlish. Users often use indirect phrases (e.g., "hariyanne na wage", "thawa aya nadda"). The examples provided are just a small sample; you must use your full linguistic capability to understand ANY variation of how a Sri Lankan user might express these intents. Interpret their true intent accurately.
     
     Here are the matches currently shown to the user:
     ${matchDetails}
@@ -188,7 +188,7 @@ export async function processPostApprovalWithGemini(userMessage: string, chatHis
     - If they type in proper Sinhala (Unicode/Sinhala letters), reply in proper Sinhala script. 
     - If they type in English, reply in English.
     
-    LANGUAGE UNDERSTANDING: You MUST deeply understand Sri Lankan colloquialisms, indirect speech, and idioms in both Sinhala and Singlish.
+    LANGUAGE UNDERSTANDING: You MUST deeply understand Sri Lankan colloquialisms, indirect speech, and idioms in both Sinhala and Singlish. You must use your full linguistic capability to understand ANY variation of how a Sri Lankan user might express their intents or ask questions.
     
     Recent Chat History:
     ${chatHistory}
@@ -230,6 +230,7 @@ export async function processPitchReplyWithGemini(userMessage: string, chatHisto
        - "kamathi", "කැමතියි", "yes", "ok" means YES. 
        - "akamathi", "එපා", "no" means NO.
        - Users often reject indirectly. Phrases like "eya hariyanne na wage" (seems unsuitable), "thawa kenek balamuda" (shall we look for someone else?), or "thawa aya nadda" (are there others?) MUST be treated as a clear NO.
+       - The examples provided above are just a small sample. You must use your full linguistic capability to understand ANY variation of how a Sri Lankan user might indirectly accept or reject the match.
        - If they are just asking a question, treat it as NO for now, or just focus on if it's a clear YES.
     
     2. Based on their choice, write a response message back to them.
@@ -294,6 +295,8 @@ export async function routeUserIntentWithGemini(userMessage: string, chatHistory
     ${chatHistory}
 
     User's latest message: "${userMessage}"
+
+    LANGUAGE UNDERSTANDING: You MUST deeply understand Sri Lankan colloquialisms, indirect speech, and idioms in both Sinhala and Singlish. The examples below are just a small sample; you must use your full linguistic capability to understand ANY variation of how a Sri Lankan user might express these intents.
 
     Your job is ONLY to determine what the user is replying to.
     
