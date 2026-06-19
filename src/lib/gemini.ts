@@ -211,17 +211,57 @@ export async function processPostApprovalWithGemini(userMessage: string, chatHis
   }
 }
 
-export async function processPitchReplyWithGemini(userMessage: string) {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-  const prompt = `
+export async function processPitchReplyWithGemini(userMessage: string, chatHistory: string) {
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.5-flash",
+    generationConfig: { responseMimeType: "application/json" }
+  });
+  const systemInstruction = `
     A user has been sent a matchmaking pitch asking if they approve a partner.
     Their reply is: "${userMessage}"
-    Does their reply indicate YES (approval/acceptance) or NO (rejection/decline)?
-    If they are asking a question, treat it as NO for now, or just focus on if it's a clear YES.
-    Answer ONLY YES or NO.
+    
+    1. Determine if their reply indicates YES (approval/acceptance) or NO (rejection/decline). 
+       - "kamathi", "කැමතියි", "yes", "ok" means YES. 
+       - "akamathi", "එපා", "no" means NO.
+       - If they are just asking a question, treat it as NO for now, or just focus on if it's a clear YES.
+    
+    2. Based on their choice, write a response message back to them.
+    
+    CRITICAL INSTRUCTION FOR THE RESPONSE MESSAGE:
+    You MUST mirror the exact language and script the user is using in their latest message.
+    - If they type in Singlish (Sinhala using English letters), reply in Singlish.
+    - If they type in proper Sinhala (Unicode/Sinhala letters), reply in proper Sinhala.
+    - If they type in English, reply in English.
+    
+    If YES:
+    The response must thank them for accepting, and ask them to deposit 5000 LKR to the following account to receive the partner's phone number, and send a photo of the receipt here:
+    Bank: BOC
+    Acc Name: LoveRoad Matchmaker
+    Acc No: 123456789
+    
+    If NO:
+    The response must say "Understood, we will let them know this is not a match and keep looking for your perfect partner" (translated into their language).
+    
+    Recent Chat History:
+    ${chatHistory}
+    
+    Return the result STRICTLY as a JSON object matching this structure:
+    {
+      "isYes": boolean,
+      "friendlyReply": "string"
+    }
   `;
   
-  const result = await model.generateContent(prompt);
-  const responseText = result.response.text().trim().toUpperCase();
-  return responseText.includes("YES");
+  const result = await model.generateContent(systemInstruction);
+  const responseText = result.response.text();
+  
+  try {
+    return JSON.parse(responseText);
+  } catch (e) {
+    console.error("Failed to parse Gemini pitch reply as JSON", e);
+    return {
+      isYes: userMessage.toLowerCase().includes("kamathi") || userMessage.toLowerCase().includes("yes"),
+      friendlyReply: "Thank you for your response."
+    };
+  }
 }

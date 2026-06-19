@@ -209,7 +209,7 @@ export default function UsersPage() {
                   const hasTwoPhotos = photos.length >= 2;
                   
                   const isComplete = hasTwoPhotos && (
-                    ['COMPLETE', 'MATCHES_SENT', 'AWAITING_PARTNER_APPROVAL', 'PAYMENT_PENDING', 'AWAITING_PAYMENT_RECEIPT', 'PAYMENT_PENDING_APPROVAL', 'PAYMENT_APPROVED_WAITING_FOR_PARTNER', 'MATCH_APPROVED', 'MATCH_COMPLETED'].includes(user.status) || 
+                    ['COMPLETE', 'MATCHES_SENT', 'AWAITING_PARTNER_APPROVAL', 'PAYMENT_PENDING', 'AWAITING_PAYMENT_RECEIPT', 'PAYMENT_PENDING_APPROVAL', 'PAYMENT_APPROVED_WAITING_FOR_PARTNER', 'MATCH_APPROVED', 'MATCH_COMPLETED', 'PARTNER_REJECTED'].includes(user.status) || 
                     user.profileData?.isComplete === true ||
                     user.status === 'WAITING_FOR_ADMIN'
                   );
@@ -263,6 +263,11 @@ export default function UsersPage() {
                           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_#10b981] animate-pulse"></div>
                           Match Complete
                         </span>
+                      ) : user.status === 'PARTNER_REJECTED' ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-rose-100 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30 shadow-[0_0_15px_rgba(244,63,94,0.2)] transition-colors">
+                          <div className="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-[0_0_5px_#f43f5e]"></div>
+                          Partner Rejected
+                        </span>
                       ) : ['COMPLETE', 'WAITING_FOR_ADMIN'].includes(user.status) ? (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-100/50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-500/20 transition-colors">
                           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
@@ -313,7 +318,7 @@ export default function UsersPage() {
                           >
                             Ask Partner
                           </button>
-                        ) : (['COMPLETE', 'MATCHES_SENT', 'WAITING_FOR_ADMIN'].includes(user.status)) ? (
+                        ) : (['COMPLETE', 'MATCHES_SENT', 'WAITING_FOR_ADMIN', 'PARTNER_REJECTED'].includes(user.status)) ? (
                           <button
                             onClick={() => router.push(`/dashboard/matches?userId=${user.id}`)}
                             className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-rose-400 to-pink-500 hover:from-rose-500 hover:to-pink-600 text-white text-sm font-bold rounded-xl transition-all shadow-[0_0_15px_rgba(244,63,94,0.4)] hover:shadow-[0_0_20px_rgba(244,63,94,0.6)] hover:scale-105 active:scale-95 whitespace-nowrap"

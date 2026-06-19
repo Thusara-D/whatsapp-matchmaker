@@ -22,7 +22,9 @@ export async function processIncomingMessage(
     // Handle Pending Pitch Replies (Mutual Consent Workflow)
     if (userData.pendingPitch && userData.pendingPitch.status === 'PENDING' && msgBody) {
       const { processPitchReplyWithGemini } = await import('@/lib/gemini');
-      const isYes = await processPitchReplyWithGemini(msgBody);
+      const result = await processPitchReplyWithGemini(msgBody, userData.chatHistory);
+      const isYes = result?.isYes || false;
+      const friendlyReply = result?.friendlyReply || "Thank you for your response.";
       
       const sourceUserId = userData.pendingPitch.fromId;
       const sourceUserRef = doc(db, 'users', sourceUserId);
@@ -34,7 +36,6 @@ export async function processIncomingMessage(
         if (isYes) {
           // Partner approved! Both users need to complete payment
           const bankMsgPrimary = `ශුභ ආරංචියක්! ඔබ තෝරාගත් සහකරු ඔබගේ විස්තර වලට කැමැත්ත පළකර ඇත! 🎉\n\nසහකරුගේ දුරකථන අංකය ලබාගැනීමට, කරුණාකර රුපියල් 5,000ක මුදල පහත ගිණුමට තැන්පත් කර, රිසිට් පතෙහි ඡායාරූපයක් මෙහි එවන්න.\n\nBank: BOC\nAcc Name: LoveRoad Matchmaker\nAcc No: 123456789`;
-          const bankMsgPartner = `ස්තුතියි! ඔබගේ කැමැත්ත අපි අනෙක් පාර්ශවයට දැනුම් දුන්නා. 🎉\n\nඔවුන්ගේ දුරකථන අංකය ලබාගැනීමට, කරුණාකර රුපියල් 5,000ක මුදල පහත ගිණුමට තැන්පත් කර, රිසිට් පතෙහි ඡායාරූපයක් මෙහි එවන්න.\n\nBank: BOC\nAcc Name: LoveRoad Matchmaker\nAcc No: 123456789`;
           
           // Update Primary Customer (Nimal)
           sourceUserData.status = 'AWAITING_PAYMENT_RECEIPT';
@@ -45,14 +46,15 @@ export async function processIncomingMessage(
           // Update Partner (Sanduni)
           userData.status = 'AWAITING_PAYMENT_RECEIPT';
           userData.selectedMatchId = sourceUserId; // Link back to the primary user
-          userData.chatHistory += `\nBot: ${bankMsgPartner}`;
-          await sendReply(from, bankMsgPartner);
+          userData.chatHistory += `\nBot: ${friendlyReply}`;
+          await sendReply(from, friendlyReply);
         } else {
           // Partner rejected
           sourceUserData.status = 'PARTNER_REJECTED';
           await setDoc(sourceUserRef, sourceUserData, { merge: true });
           
-          await sendReply(from, "Understood. We will let them know this is not a match and keep looking for your perfect partner.");
+          userData.chatHistory += `\nBot: ${friendlyReply}`;
+          await sendReply(from, friendlyReply);
         }
       }
       
