@@ -46,6 +46,12 @@ export default function UsersPage() {
   };
 
   const handleAskPartner = async (userId: string, partnerId: string) => {
+    const partner = users.find(u => u.id === partnerId);
+    if (partner && partner.pendingPitch && partner.pendingPitch.status === 'PENDING') {
+      alert("This user is currently reviewing another proposal. Please wait for them to reply first.");
+      return;
+    }
+
     try {
       const res = await fetch('/api/ask-partner', {
         method: 'POST',
@@ -55,7 +61,8 @@ export default function UsersPage() {
       if (res.ok) {
         alert("Pitch sent to partner successfully!");
       } else {
-        alert("Failed to send pitch.");
+        const data = await res.json();
+        alert(data.error || "Failed to send pitch.");
       }
     } catch (e) {
       alert("Error sending pitch.");

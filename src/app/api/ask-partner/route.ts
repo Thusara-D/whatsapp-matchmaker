@@ -29,6 +29,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'User is not awaiting approval for this partner' }, { status: 400 });
     }
 
+    // Ensure User B is not currently reviewing another pitch
+    if (partnerData.pendingPitch && partnerData.pendingPitch.status === 'PENDING') {
+      return NextResponse.json({ error: 'This user is currently reviewing another proposal. Please wait for them to reply first.' }, { status: 400 });
+    }
+
     const p = userData.profileData || {};
     
     // 1. Construct the detailed pitch message
