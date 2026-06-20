@@ -380,3 +380,51 @@ export async function generateCancellationMessage(chatHistory: string, isPaidUse
     }
   }
 }
+
+export async function generateRejectionTransitionMessage(chatHistory: string, currentMatches: any[]) {
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.5-flash",
+    generationConfig: { responseMimeType: "application/json" }
+  });
+
+  const matchDetails = (currentMatches && currentMatches.length > 0) ? currentMatches.map((m, index) => 
+    `Match #${index + 1}: ID=${m.id}`
+  ).join(", ") : "No current matches";
+
+  const systemInstruction = `
+    You are a friendly customer assistant for a Sri Lankan matchmaking service.
+    The user's pitch was just rejected by a potential partner.
+    
+    You need to write a WhatsApp message to them to soften the blow and offer them their remaining matches.
+    Message meaning must be: "Unfortunately, this partner is not interested right now. But don't worry! You still have other great matches. Would you like to send a request to one of your other matches [list the match numbers they have], or would you like us to find a completely new batch of matches for you?"
+    
+    Available Matches: ${matchDetails}
+    
+    CRITICAL INSTRUCTION: You MUST mirror the exact language and script the user is using based on their Chat History. 
+    - If they mostly type in Singlish (Sinhala using English letters), write the message in Singlish. 
+    - If they mostly type in proper Sinhala (Unicode/Sinhala letters), write the message in proper Sinhala script. 
+    - If they mostly type in English, write the message in English.
+    
+    LANGUAGE UNDERSTANDING: You MUST deeply understand Sri Lankan colloquialisms and speak naturally and empathetically.
+    
+    Recent Chat History:
+    ${chatHistory}
+    
+    Return the result STRICTLY as a JSON object matching this structure:
+    {
+      "message": "string (The translated transition message)"
+    }
+  `;
+
+  const result = await model.generateContent(systemInstruction);
+  const responseText = result.response.text();
+
+  try {
+    const parsed = JSON.parse(responseText);
+    return parsed.message;
+  } catch (e) {
+    console.error("Failed to parse Gemini transition message as JSON", e);
+    // Fallback message
+    return "කණගාටුයි, මෙම සහකරු මේ මොහොතේ සම්බන්ධ වීමට අකමැත්ත පළ කර ඇත. නමුත් කලබල වෙන්න එපා! ඔයාට තව ගැලපෙන අය ඉන්නවා. වෙනත් කෙනෙකුට request එකක් යවමුද? නැත්නම් අලුත් අය බලමුද?";
+  }
+}

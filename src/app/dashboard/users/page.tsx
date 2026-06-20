@@ -317,15 +317,37 @@ export default function UsersPage() {
                       </div>
                     </td>
                     <td className="px-4 md:px-8 py-3 md:py-5 text-center w-full md:w-32 block md:table-cell">
-                      <div className="flex items-center justify-end md:justify-center w-full">
-                        {user.status === 'AWAITING_PARTNER_APPROVAL' && user.selectedMatchId ? (
+                      <div className="flex items-center justify-end md:justify-center w-full gap-2">
+                        {user.status === 'AWAITING_PARTNER_APPROVAL' && user.selectedMatchId && (
                           <button
                             onClick={() => handleAskPartner(user.id, user.selectedMatchId)}
                             className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white text-sm font-bold rounded-xl transition-all shadow-md active:scale-95 whitespace-nowrap"
                           >
                             Ask Partner
                           </button>
-                        ) : (['COMPLETE', 'MATCHES_SENT', 'WAITING_FOR_ADMIN', 'PARTNER_REJECTED'].includes(user.status)) ? (
+                        )}
+                        {(user.status === 'MATCHES_SENT' || user.status === 'PARTNER_REJECTED' || user.status === 'AWAITING_PARTNER_APPROVAL') && (
+                          <button
+                            onClick={async () => {
+                              try {
+                                const res = await fetch('/api/send-rejection-options', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ userId: user.id })
+                                });
+                                if (res.ok) alert("Options sent to user successfully!");
+                                else alert("Failed to send options.");
+                              } catch (e) {
+                                alert("Error sending options.");
+                              }
+                            }}
+                            className="inline-flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 text-xs font-bold rounded-xl transition-all shadow-sm active:scale-95 whitespace-nowrap"
+                            title="Resend Match Options (Match #2, #3, or New Batch)"
+                          >
+                            Send Options
+                          </button>
+                        )}
+                        {(['COMPLETE', 'MATCHES_SENT', 'WAITING_FOR_ADMIN', 'PARTNER_REJECTED'].includes(user.status)) && (
                           <button
                             onClick={() => router.push(`/dashboard/matches?userId=${user.id}`)}
                             className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-rose-400 to-pink-500 hover:from-rose-500 hover:to-pink-600 text-white text-sm font-bold rounded-xl transition-all shadow-[0_0_15px_rgba(244,63,94,0.4)] hover:shadow-[0_0_20px_rgba(244,63,94,0.6)] hover:scale-105 active:scale-95 whitespace-nowrap"
@@ -333,7 +355,7 @@ export default function UsersPage() {
                             <Heart className="w-4 h-4 fill-white/20" />
                             Match
                           </button>
-                        ) : null}
+                        )}
                       </div>
                     </td>
                   </tr>

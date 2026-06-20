@@ -64,8 +64,16 @@ export async function processIncomingMessage(
           await sendReply(from, friendlyReply);
         } else {
           // Partner rejected
-          sourceUserData.status = 'PARTNER_REJECTED';
+          // We need to automatically transition Nimal (User A) back to selecting matches
+          const { generateRejectionTransitionMessage } = await import('@/lib/gemini');
+          const rejectionMsg = await generateRejectionTransitionMessage(sourceUserData.chatHistory || "", sourceUserData.currentMatches || []);
+          
+          sourceUserData.status = 'MATCHES_SENT';
+          sourceUserData.selectedMatchId = null; // Clear their pending selection
+          sourceUserData.chatHistory += `\nBot: ${rejectionMsg}`;
+          
           await setDoc(sourceUserRef, sourceUserData, { merge: true });
+          await sendWhatsAppMessage(sourceUserId, rejectionMsg);
           
           userData.chatHistory += `\nBot: ${friendlyReply}`;
           await sendReply(from, friendlyReply);
