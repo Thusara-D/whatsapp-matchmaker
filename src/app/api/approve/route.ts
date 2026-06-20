@@ -60,8 +60,19 @@ export async function POST(request: Request) {
       await setDoc(matchRef, matchData, { merge: true });
       await sendWhatsAppMessage(matchedUserId, contactMessageToPartner);
 
+    } else if (matchData.status === 'PAYMENT_PENDING_APPROVAL') {
+      // User B has paid but is waiting for admin verification
+      const waitingMessageToUser = `✅ Payment Approved!\n\nYour partner has also submitted their payment and we are currently verifying their receipt. We will automatically send you their contact details as soon as it is verified. (ඔබගේ සහකරුද ගෙවීම් කර ඇති අතර අප එය තහවුරු කරමින් සිටිමු)`;
+      
+      // We DO NOT nudge the partner because they already paid!
+      
+      userData.status = 'PAYMENT_APPROVED_WAITING_FOR_PARTNER';
+      userData.paymentApprovedAt = new Date().toISOString();
+      userData.chatHistory += `\nBot: ${waitingMessageToUser}`;
+      await setDoc(userRef, userData, { merge: true });
+      await sendWhatsAppMessage(userId, waitingMessageToUser);
     } else {
-      // ONLY User A has paid. Waiting for User B.
+      // ONLY User A has paid. Waiting for User B to pay.
       const waitingMessageToUser = `✅ Payment Approved!\n\nWe are currently waiting for your partner to complete their payment. As soon as they do, we will automatically send you their contact details. (අපි සහකරුගේ ගෙවීම තහවුරු වනතුරු රැඳී සිටිමු. ඉන්පසු වහාම විස්තර එවන්නෙමු)`;
       
       const nudgeMessageToPartner = `ඔබගේ සහකරු ඔවුන්ගේ මුදල් ගෙවීම සම්පූර්ණ කර ඇත! 🎉\n\nකරුණාකර ඔබගේ ගෙවීමද සම්පූර්ණ කර රිසිට් පත එවන්න. එවිට ඔබට ඔවුන්ගේ දුරකථන අංකය ලබාගත හැක.`;
