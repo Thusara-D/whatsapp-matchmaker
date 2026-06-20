@@ -61,7 +61,7 @@ export default function PaymentsPage() {
         .map(u => u.selectedMatchId)
         .filter(Boolean);
       
-      const uniqueMatchIds = [...new Set(allSelectedMatchIds)] as string[];
+      const uniqueMatchIds = Array.from(new Set(allSelectedMatchIds)) as string[];
       const matchNames: Record<string, string> = {};
       
       await Promise.all(uniqueMatchIds.map(async (matchId) => {
