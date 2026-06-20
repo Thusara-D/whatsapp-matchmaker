@@ -90,7 +90,18 @@ export async function processIncomingMessage(
           await setDoc(userRef, userData, { merge: true });
           // SILENT: No reply sent
           return;
-       } else if (userData.status === "ONBOARDING" || !userData.profileData.hasUploadedTwoPhotos) {
+       } else if (userData.status === "WAITING_FOR_ADMIN" && userData.profileData?.hasUploadedTwoPhotos) {
+          console.log("Late receipt/image detected from WAITING_FOR_ADMIN user.");
+          userData.hasLateMessage = true;
+          await setDoc(userRef, userData, { merge: true });
+          
+          if (process.env.ADMIN_PHONE_NUMBER) {
+            const adminJid = process.env.ADMIN_PHONE_NUMBER.includes('@') ? process.env.ADMIN_PHONE_NUMBER : `${process.env.ADMIN_PHONE_NUMBER}@s.whatsapp.net`;
+            const alertMsg = `🚨 *Alert*: ${userData.profileData?.name || "User"} (+${rawPhoneNumber}) just sent an image. This might be a late payment receipt. Please review their chat.`;
+            await sendReply(adminJid, alertMsg);
+          }
+          return;
+       } else if (userData.status === "ONBOARDING" || !userData.profileData?.hasUploadedTwoPhotos) {
           const { verifySinglePhotoWithGemini, compareTwoPhotosWithGemini } = await import('@/lib/gemini');
           const fs = await import('fs');
           const path = await import('path');

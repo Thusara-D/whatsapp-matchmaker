@@ -11,6 +11,7 @@ export default function PaymentsPage() {
   const [historyUsers, setHistoryUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [approvingId, setApprovingId] = useState<string | null>(null);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [selectedReceiptUrl, setSelectedReceiptUrl] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"pending" | "waiting" | "history">("pending");
 
@@ -109,6 +110,31 @@ export default function PaymentsPage() {
       alert("Failed to approve payment. Please try again.");
     } finally {
       setApprovingId(null);
+    }
+  }
+
+  async function handleCancelMatch(userId: string) {
+    if (!confirm("Are you sure you want to cancel this match? Both users will be notified via WhatsApp.")) return;
+    
+    setCancellingId(userId);
+    try {
+      const res = await fetch("/api/cancel-match", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+
+      if (res.ok) {
+        alert("Match cancelled successfully!");
+        fetchPaymentsData(); // Refresh the list
+      } else {
+        const data = await res.json();
+        alert(`Error: ${data.error}`);
+      }
+    } catch (err) {
+      alert("Failed to cancel match. Please try again.");
+    } finally {
+      setCancellingId(null);
     }
   }
 
@@ -278,7 +304,8 @@ export default function PaymentsPage() {
                     <th className="px-8 py-5 font-bold">Customer Name</th>
                     <th className="px-8 py-5 font-bold">Match ID</th>
                     <th className="px-8 py-5 font-bold">Date Approved</th>
-                    <th className="px-8 py-5 font-bold text-right">Status</th>
+                    <th className="px-8 py-5 font-bold text-center">Status</th>
+                    <th className="px-8 py-5 font-bold text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/40 dark:divide-slate-800/50">
@@ -297,11 +324,21 @@ export default function PaymentsPage() {
                         )}
                       </td>
                       <td className="px-8 py-6 font-medium text-gray-500 dark:text-gray-400">{formatDate(user.paymentApprovedAt)}</td>
-                      <td className="px-8 py-6 text-right">
+                      <td className="px-8 py-6 text-center">
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-500/30 shadow-[0_0_15px_rgba(249,115,22,0.2)] transition-colors">
                           <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_5px_#f97316] animate-pulse"></div>
                           Wait Partner Pay
                         </span>
+                      </td>
+                      <td className="px-8 py-6 text-right">
+                        <button
+                          onClick={() => handleCancelMatch(user.id)}
+                          disabled={cancellingId === user.id}
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-bold rounded-xl transition-all shadow-sm hover:scale-105 active:scale-95 disabled:opacity-50"
+                        >
+                          <XCircle className="w-4 h-4" />
+                          {cancellingId === user.id ? "Cancelling..." : "Cancel Match"}
+                        </button>
                       </td>
                     </tr>
                   ))}

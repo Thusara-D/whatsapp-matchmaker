@@ -322,3 +322,61 @@ export async function routeUserIntentWithGemini(userMessage: string, chatHistory
     return "UNKNOWN";
   }
 }
+
+export async function generateCancellationMessage(chatHistory: string, isPaidUser: boolean) {
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.5-flash",
+    generationConfig: { responseMimeType: "application/json" }
+  });
+
+  const paidUserInstruction = `
+    You need to write a WhatsApp message to a user whose match was just cancelled because their partner failed to pay the matchmaking fee in time.
+    The user HAS already paid Rs 5,000.
+    
+    Message meaning must be: "We apologize, but your match has been cancelled because your partner did not complete the process. Your Rs 5,000 payment has been saved as a credit for your next match! We will send you new matching profiles shortly."
+  `;
+
+  const unpaidUserInstruction = `
+    You need to write a WhatsApp message to a user whose match was just cancelled because they failed to pay the matchmaking fee in time.
+    The user HAS NOT paid.
+    
+    Message meaning must be: "Your pending match has been cancelled because the payment window expired. Please wait for our admin to send you new matching profiles."
+  `;
+
+  const systemInstruction = `
+    You are a friendly customer assistant for a Sri Lankan matchmaking service.
+    
+    ${isPaidUser ? paidUserInstruction : unpaidUserInstruction}
+    
+    CRITICAL INSTRUCTION: You MUST mirror the exact language and script the user is using based on their Chat History. 
+    - If they mostly type in Singlish (Sinhala using English letters), write the message in Singlish. 
+    - If they mostly type in proper Sinhala (Unicode/Sinhala letters), write the message in proper Sinhala script. 
+    - If they mostly type in English, write the message in English.
+    
+    LANGUAGE UNDERSTANDING: You MUST deeply understand Sri Lankan colloquialisms and speak naturally.
+    
+    Recent Chat History:
+    ${chatHistory}
+    
+    Return the result STRICTLY as a JSON object matching this structure:
+    {
+      "message": "string (The translated cancellation message)"
+    }
+  `;
+
+  const result = await model.generateContent(systemInstruction);
+  const responseText = result.response.text();
+
+  try {
+    const parsed = JSON.parse(responseText);
+    return parsed.message;
+  } catch (e) {
+    console.error("Failed to parse Gemini cancellation message as JSON", e);
+    // Fallback messages if JSON parsing fails
+    if (isPaidUser) {
+      return "කණගාටුයි, ඔබේ සහකරු/සහකාරිය ගෙවීම් සම්පූර්ණ නොකළ බැවින් මෙම සම්බන්ධතාවය අවලංගු කර ඇත. ඔබ ගෙවූ රු. 5,000 මීළඟ සම්බන්ධතාවය සඳහා ඉතිරි කර ඇත. අපි ඉක්මනින් නව තොරතුරු එවන්නෙමු.";
+    } else {
+      return "ගෙවීම් කාල සීමාව අවසන් වූ බැවින් ඔබේ සම්බන්ධතාවය අවලංගු කර ඇත. කරුණාකර නව තොරතුරු ලැබෙන තුරු රැඳී සිටින්න.";
+    }
+  }
+}
