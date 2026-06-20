@@ -56,7 +56,30 @@ export default function PaymentsPage() {
         return dateB - dateA;
       });
 
-      setHistoryUsers(history);
+      // Fetch Match Names for better display
+      const allSelectedMatchIds = [...pending, ...waiting, ...history]
+        .map(u => u.selectedMatchId)
+        .filter(Boolean);
+      
+      const uniqueMatchIds = [...new Set(allSelectedMatchIds)] as string[];
+      const matchNames: Record<string, string> = {};
+      
+      await Promise.all(uniqueMatchIds.map(async (matchId) => {
+        const mRef = doc(db, "users", matchId);
+        const mSnap = await getDoc(mRef);
+        if (mSnap.exists()) {
+           matchNames[matchId] = mSnap.data().profileData?.name || "Unknown";
+        }
+      }));
+
+      const appendMatchName = (list: any[]) => list.map(u => ({
+         ...u,
+         matchName: u.selectedMatchId ? matchNames[u.selectedMatchId] : null
+      }));
+
+      setPendingUsers(appendMatchName(pending));
+      setWaitingUsers(appendMatchName(waiting));
+      setHistoryUsers(appendMatchName(history));
     } catch (error) {
       console.error("Failed to fetch payments data", error);
     } finally {
@@ -189,7 +212,16 @@ export default function PaymentsPage() {
                     <tr key={user.id} className="hover:bg-white/60 dark:hover:bg-slate-800/60 transition-colors duration-200">
                       <td className="px-8 py-6 font-bold text-gray-800 dark:text-gray-200">+{user.id}</td>
                       <td className="px-8 py-6 font-medium text-gray-600 dark:text-gray-400">{user.profileData?.name || "Unknown"}</td>
-                      <td className="px-8 py-6 font-mono text-xs text-gray-500 dark:text-gray-500">{user.selectedMatchId}</td>
+                      <td className="px-8 py-6 font-mono text-xs text-gray-500 dark:text-gray-500">
+                        {user.matchName ? (
+                          <div className="flex flex-col">
+                            <span className="font-semibold text-gray-700 dark:text-gray-300 font-sans text-sm">{user.matchName}</span>
+                            <span>+{user.selectedMatchId}</span>
+                          </div>
+                        ) : (
+                          user.selectedMatchId ? `+${user.selectedMatchId}` : "N/A"
+                        )}
+                      </td>
                       <td className="px-8 py-6">
                         {user.paymentReceiptUrl ? (
                           <button
@@ -254,7 +286,16 @@ export default function PaymentsPage() {
                     <tr key={user.id} className="hover:bg-white/60 dark:hover:bg-slate-800/60 transition-colors duration-200">
                       <td className="px-8 py-6 font-bold text-gray-800 dark:text-gray-200">+{user.id}</td>
                       <td className="px-8 py-6 font-medium text-gray-600 dark:text-gray-400">{user.profileData?.name || "Unknown"}</td>
-                      <td className="px-8 py-6 font-mono text-xs text-gray-500 dark:text-gray-500">{user.selectedMatchId}</td>
+                      <td className="px-8 py-6 font-mono text-xs text-gray-500 dark:text-gray-500">
+                        {user.matchName ? (
+                          <div className="flex flex-col">
+                            <span className="font-semibold text-gray-700 dark:text-gray-300 font-sans text-sm">{user.matchName}</span>
+                            <span>+{user.selectedMatchId}</span>
+                          </div>
+                        ) : (
+                          user.selectedMatchId ? `+${user.selectedMatchId}` : "N/A"
+                        )}
+                      </td>
                       <td className="px-8 py-6 font-medium text-gray-500 dark:text-gray-400">{formatDate(user.paymentApprovedAt)}</td>
                       <td className="px-8 py-6 text-right">
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-500/30 shadow-[0_0_15px_rgba(249,115,22,0.2)] transition-colors">
