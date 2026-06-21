@@ -428,3 +428,52 @@ export async function generateRejectionTransitionMessage(chatHistory: string, cu
     return "කණගාටුයි, මෙම සහකරු මේ මොහොතේ සම්බන්ධ වීමට අකමැත්ත පළ කර ඇත. නමුත් කලබල වෙන්න එපා! ඔයාට තව ගැලපෙන අය ඉන්නවා. වෙනත් කෙනෙකුට request එකක් යවමුද? නැත්නම් අලුත් අය බලමුද?";
   }
 }
+
+export async function checkIfUserIsOptingOut(userMessage: string, chatHistory: string) {
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.5-flash",
+    generationConfig: { responseMimeType: "application/json" }
+  });
+
+  const systemInstruction = `
+    You are an intent router for a Sri Lankan matchmaking bot.
+    Your ONLY job is to determine if the user's latest message indicates they want to completely stop the service, cancel their profile, or that they have already found a partner/got married.
+    
+    CRITICAL INSTRUCTION: Understand ANY word or phrase in Sinhala, Singlish, or English that means they are opting out.
+    Examples of opting out:
+    - "Mama bande" (I got married)
+    - "Mata wena epa" (I don't want any more)
+    - "Cancel my profile"
+    - "Wena kenek set una" (I found someone else)
+    - "Epa" (If used in the context of entirely stopping the service, not just rejecting one match)
+    
+    If they are just rejecting a specific match but still want the service, that is NOT opting out.
+    Only return true if they are terminating their entire matchmaking journey.
+    
+    If they are opting out, generate a robotic confirmation message translated into the user's language (Sinhala/Singlish/English based on their history) that says exactly:
+    "Understood. Your profile has been deactivated."
+    Do NOT congratulate them politely.
+    
+    Recent Chat History:
+    ${chatHistory}
+    
+    User's latest message: "${userMessage}"
+    
+    Return the result STRICTLY as a JSON object matching this structure:
+    {
+      "isOptOut": boolean,
+      "confirmationMessage": "string (If isOptOut is true, put the translated robotic confirmation here. Otherwise empty string.)"
+    }
+  `;
+
+  const result = await model.generateContent(systemInstruction);
+  const responseText = result.response.text();
+
+  try {
+    const parsed = JSON.parse(responseText);
+    return parsed;
+  } catch (e) {
+    console.error("Failed to parse Gemini opt-out check as JSON", e);
+    return { isOptOut: false, confirmationMessage: "" };
+  }
+}

@@ -280,6 +280,11 @@ export default function UsersPage() {
                           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
                           Ready
                         </span>
+                      ) : user.status === 'INACTIVE' ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 transition-colors">
+                          <div className="w-1.5 h-1.5 rounded-full bg-gray-400"></div>
+                          Inactive
+                        </span>
                       ) : (
                         <span className="text-gray-400 dark:text-gray-600 font-bold">-</span>
                       )}

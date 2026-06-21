@@ -22,6 +22,22 @@ export async function processIncomingMessage(
     const hasPendingPitch = userData.pendingPitch && userData.pendingPitch.status === 'PENDING';
     const isSelectingMatches = userData.status === "MATCHES_SENT";
 
+    // 1. Global Opt-Out Check
+    if (msgBody) {
+      const { checkIfUserIsOptingOut } = await import('@/lib/gemini');
+      const optOutResult = await checkIfUserIsOptingOut(msgBody, userData.chatHistory || "");
+      
+      if (optOutResult.isOptOut) {
+        userData.status = 'INACTIVE';
+        if (optOutResult.confirmationMessage) {
+          userData.chatHistory += `\nBot: ${optOutResult.confirmationMessage}`;
+          await sendReply(from, optOutResult.confirmationMessage);
+        }
+        await setDoc(userRef, userData, { merge: true });
+        return; // Halt all further processing
+      }
+    }
+
     let intent = "UNKNOWN";
 
     if (hasPendingPitch && isSelectingMatches && msgBody) {
