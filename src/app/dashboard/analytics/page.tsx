@@ -16,8 +16,8 @@ export default function AnalyticsPage() {
   const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // We assume each match approval generates Rs. 5000.
-  const PAYMENT_AMOUNT = 5000;
+  // We assume each match approval generates Rs. 2000.
+  const PAYMENT_AMOUNT = 2000;
 
   useEffect(() => {
     async function fetchAnalyticsData() {

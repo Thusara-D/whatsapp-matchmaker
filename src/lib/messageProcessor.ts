@@ -65,7 +65,7 @@ export async function processIncomingMessage(
         
         if (isYes) {
           // Partner approved! Both users need to complete payment
-          const bankMsgPrimary = `ශුභ ආරංචියක්! ඔබ තෝරාගත් සහකරු ඔබගේ විස්තර වලට කැමැත්ත පළකර ඇත! 🎉\n\nසහකරුගේ දුරකථන අංකය ලබාගැනීමට, කරුණාකර රුපියල් 5,000ක මුදල පහත ගිණුමට තැන්පත් කර, රිසිට් පතෙහි ඡායාරූපයක් මෙහි එවන්න.\n\nBank: BOC\nAcc Name: LoveRoad Matchmaker\nAcc No: 123456789`;
+          const bankMsgPrimary = `ශුභ ආරංචියක්! ඔබ තෝරාගත් සහකරු ඔබගේ විස්තර වලට කැමැත්ත පළකර ඇත! 🎉\n\nසහකරුගේ දුරකථන අංකය ලබාගැනීමට, කරුණාකර රුපියල් 2,000ක මුදල පහත ගිණුමට තැන්පත් කර, රිසිට් පතෙහි ඡායාරූපයක් මෙහි එවන්න.\n\nBank: Commercial\nAcc no: 800 98 99 601\nName: M.A.T DENUWAN\nBranch: Malabe`;
           
           // Update Primary Customer (Nimal)
           sourceUserData.status = 'AWAITING_PAYMENT_RECEIPT';

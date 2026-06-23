@@ -242,10 +242,11 @@ export async function processPitchReplyWithGemini(userMessage: string, chatHisto
     - If they type in English, reply in English.
     
     If YES:
-    The response must thank them for accepting, and ask them to deposit 5000 LKR to the following account to receive the partner's phone number, and send a photo of the receipt here:
-    Bank: BOC
-    Acc Name: LoveRoad Matchmaker
-    Acc No: 123456789
+    The response must thank them for accepting, and ask them to deposit 2000 LKR to the following account to receive the partner's phone number, and send a photo of the receipt here:
+    Bank: Commercial
+    Acc no: 800 98 99 601
+    Name: M.A.T DENUWAN
+    Branch: Malabe
     
     If NO:
     The response must say "Understood, we will let them know this is not a match and keep looking for your perfect partner" (translated into their language).
@@ -331,9 +332,9 @@ export async function generateCancellationMessage(chatHistory: string, isPaidUse
 
   const paidUserInstruction = `
     You need to write a WhatsApp message to a user whose match was just cancelled because their partner failed to pay the matchmaking fee in time.
-    The user HAS already paid Rs 5,000.
+    The user HAS already paid Rs 2,000.
     
-    Message meaning must be: "We apologize, but your match has been cancelled because your partner did not complete the process. Your Rs 5,000 payment has been saved as a credit for your next match! We will send you new matching profiles shortly."
+    Message meaning must be: "We apologize, but your match has been cancelled because your partner did not complete the process. Your Rs 2,000 payment has been saved as a credit for your next match! We will send you new matching profiles shortly."
   `;
 
   const unpaidUserInstruction = `
@@ -374,7 +375,7 @@ export async function generateCancellationMessage(chatHistory: string, isPaidUse
     console.error("Failed to parse Gemini cancellation message as JSON", e);
     // Fallback messages if JSON parsing fails
     if (isPaidUser) {
-      return "කණගාටුයි, ඔබේ සහකරු/සහකාරිය ගෙවීම් සම්පූර්ණ නොකළ බැවින් මෙම සම්බන්ධතාවය අවලංගු කර ඇත. ඔබ ගෙවූ රු. 5,000 මීළඟ සම්බන්ධතාවය සඳහා ඉතිරි කර ඇත. අපි ඉක්මනින් නව තොරතුරු එවන්නෙමු.";
+      return "කණගාටුයි, ඔබේ සහකරු/සහකාරිය ගෙවීම් සම්පූර්ණ නොකළ බැවින් මෙම සම්බන්ධතාවය අවලංගු කර ඇත. ඔබ ගෙවූ රු. 2,000 මීළඟ සම්බන්ධතාවය සඳහා ඉතිරි කර ඇත. අපි ඉක්මනින් නව තොරතුරු එවන්නෙමු.";
     } else {
       return "ගෙවීම් කාල සීමාව අවසන් වූ බැවින් ඔබේ සම්බන්ධතාවය අවලංගු කර ඇත. කරුණාකර නව තොරතුරු ලැබෙන තුරු රැඳී සිටින්න.";
     }
