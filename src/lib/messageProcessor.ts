@@ -155,9 +155,8 @@ export async function processIncomingMessage(
 
           await runTransaction(db, async (transaction) => {
              const docSnap = await transaction.get(userRef);
-             if (!docSnap.exists()) return;
+             const data = docSnap.exists() ? docSnap.data() : { profileData: {}, chatHistory: "", status: "ONBOARDING", currentMatches: [], uploadedPhotos: [], uploadedPhotoHashes: [] };
              
-             const data = docSnap.data();
              const hashes = data.uploadedPhotoHashes || [];
              
              if (hashes.includes(imageHash)) {
@@ -169,10 +168,11 @@ export async function processIncomingMessage(
              const newPhotos = [...photos, photoUrl];
              const newHashes = [...hashes, imageHash];
              
-             transaction.update(userRef, {
+             transaction.set(userRef, {
+                 ...data,
                  uploadedPhotos: newPhotos,
                  uploadedPhotoHashes: newHashes
-             });
+             }, { merge: true });
              
              updatedDoc = { ...data, uploadedPhotos: newPhotos, uploadedPhotoHashes: newHashes };
           });
