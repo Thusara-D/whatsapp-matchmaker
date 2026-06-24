@@ -174,11 +174,31 @@ export default function UsersPage() {
                 className="appearance-none bg-white/40 dark:bg-slate-800/40 border border-white/50 dark:border-slate-700/50 text-gray-600 dark:text-gray-300 text-xs font-semibold rounded-full px-4 py-1.5 pr-8 hover:bg-white/80 transition-all shadow-sm outline-none cursor-pointer"
               >
                 <option value="All">All Districts</option>
+                <option value="Ampara">Ampara</option>
+                <option value="Anuradhapura">Anuradhapura</option>
+                <option value="Badulla">Badulla</option>
+                <option value="Batticaloa">Batticaloa</option>
                 <option value="Colombo">Colombo</option>
-                <option value="Gampaha">Gampaha</option>
-                <option value="Kandy">Kandy</option>
-                <option value="Kurunegala">Kurunegala</option>
                 <option value="Galle">Galle</option>
+                <option value="Gampaha">Gampaha</option>
+                <option value="Hambantota">Hambantota</option>
+                <option value="Jaffna">Jaffna</option>
+                <option value="Kalutara">Kalutara</option>
+                <option value="Kandy">Kandy</option>
+                <option value="Kegalle">Kegalle</option>
+                <option value="Kilinochchi">Kilinochchi</option>
+                <option value="Kurunegala">Kurunegala</option>
+                <option value="Mannar">Mannar</option>
+                <option value="Matale">Matale</option>
+                <option value="Matara">Matara</option>
+                <option value="Monaragala">Monaragala</option>
+                <option value="Mullaitivu">Mullaitivu</option>
+                <option value="Nuwara Eliya">Nuwara Eliya</option>
+                <option value="Polonnaruwa">Polonnaruwa</option>
+                <option value="Puttalam">Puttalam</option>
+                <option value="Ratnapura">Ratnapura</option>
+                <option value="Trincomalee">Trincomalee</option>
+                <option value="Vavuniya">Vavuniya</option>
               </select>
               <ChevronDown className="w-3 h-3 text-gray-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
@@ -424,6 +444,8 @@ export default function UsersPage() {
                    { label: "Looking For", value: p.lookingForGender },
                    { label: "Age", value: p.age },
                    { label: "Birth Date", value: p.birthYear ? `${p.birthYear}-${p.birthMonth}-${p.birthDay}` : "" },
+                   { label: "Religion", value: p.religion },
+                   { label: "Current Country", value: p.currentCountry },
                    { label: "Height", value: p.height },
                    { label: "Weight", value: p.weight },
                    { label: "Skin Color", value: p.skinColor },

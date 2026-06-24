@@ -31,15 +31,17 @@ export async function processMessageWithGemini(userMessage: string, chatHistory:
     4. දිස්ත්රික්කය (District)
     5. වයස (Age)
     6. උපන් වර්ෂය, මාසය, දවස (Birth Year, Month, Day)
-    7. උස (Height)
-    8. බර (Weight)
-    9. සමේ වර්ණය (Skin Color)
-    10. අධ්යාපන සුදුසුකම් (Educational Qualifications)
-    11. රැකියාව (Job)
-    12. විවාහක/අවිවාහක (Marital Status)
-    13. සහකරු/සහකාරියගේ වයස් පරතරය (Partner Age Gap)
-    14. සහකරු හෝ සහකාරිය මොන වගේ වෙන්න ඕනද? ගැහැණු ළමයෙක්ද පිරිමි ළමයෙක්ද? (Partner Preferences & Gender they are looking for)
-    15. වෙනත් විස්තර (Additional Details - anything else they mentioned)
+    7. ආගම (Religion)
+    8. දැනට ජීවත් වෙන රට (Current Country of Residence)
+    9. උස (Height)
+    10. බර (Weight)
+    11. සමේ වර්ණය (Skin Color)
+    12. අධ්යාපන සුදුසුකම් (Educational Qualifications)
+    13. රැකියාව (Job)
+    14. විවාහක/අවිවාහක (Marital Status)
+    15. සහකරු/සහකාරියගේ වයස් පරතරය (Partner Age Gap)
+    16. සහකරු හෝ සහකාරිය මොන වගේ වෙන්න ඕනද? ගැහැණු ළමයෙක්ද පිරිමි ළමයෙක්ද? (Partner Preferences & Gender they are looking for)
+    17. වෙනත් විස්තර (Additional Details - anything else they mentioned)
 
     Current Profile State: ${JSON.stringify(currentProfileState)}
     Chat History: ${chatHistory}
@@ -63,6 +65,8 @@ export async function processMessageWithGemini(userMessage: string, chatHistory:
          "birthYear": 2000,
          "birthMonth": 1,
          "birthDay": 1,
+         "religion": "string",
+         "currentCountry": "string",
          "height": "string",
          "weight": "string",
          "skinColor": "string",
